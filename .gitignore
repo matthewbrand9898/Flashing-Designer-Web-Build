@@ -1,0 +1,15 @@
+# ignore everything
+*
+
+# but do not ignore these directories (and their contents)
+!/lib/
+!/lib/**
+
+!/images/
+!/images/**
+
+!/fonts/
+!/fonts/**
+
+# make sure .gitignore itself isn’t ignored
+!/.gitignore
