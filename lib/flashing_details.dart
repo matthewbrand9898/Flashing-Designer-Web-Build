@@ -91,7 +91,6 @@ Future<void> downloadBytes(Uint8List bytes, String filename) async {
   web.document.body?.append(anchor);
   anchor.click();
   anchor.remove();
-  web.document.body!.removeChild(anchor);
   anchor = null;
   uri = null;
   base64Data = null;
