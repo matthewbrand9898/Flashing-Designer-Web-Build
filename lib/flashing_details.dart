@@ -91,10 +91,10 @@ Future<void> downloadBytes(Uint8List bytes, String filename) async {
   web.document.body?.append(anchor);
   anchor.click();
   anchor.remove();
+  web.URL.revokeObjectURL(uri);
   anchor = null;
   uri = null;
   base64Data = null;
-  web.URL.revokeObjectURL(uri!);
 }
 
 class _RenderFlashingState extends State<FlashingDetails> {
