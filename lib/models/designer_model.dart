@@ -79,6 +79,7 @@ class DesignerModel extends ChangeNotifier {
   int _SelectedRotationPoint = 0;
   int _colourSide = 1;
   String _material = '';
+  String _Lengths = '';
 
   //getters
   List<Offset> get points => _points;
@@ -158,6 +159,13 @@ class DesignerModel extends ChangeNotifier {
     }
   }
 
+  String get lengths => _Lengths;
+  set lengths(String v) {
+    if (v != _Lengths) {
+      _Lengths = v;
+      notifyListeners();
+    }
+  }
   //Setters
 
   void enableTaper() {

@@ -44,39 +44,69 @@ class FlashingDesigner extends StatelessWidget {
               onPressed: () async {
                 final designerModel =
                     Provider.of<DesignerModel>(context, listen: false);
-
                 if (designerModel.points.isEmpty) return;
 
-                // 1. show the dialog
-                final String? material = await showDialog<String>(
+                // 1. show the dialog and await back both material + lengths
+                final result = await showDialog<Map<String, String>>(
                   context: context,
                   builder: (context) {
-                    String temp = designerModel.material;
+                    final materialController = TextEditingController(text: '');
+                    final lengthsController = TextEditingController(text: '');
+
                     return AlertDialog(
                       backgroundColor: Colors.white,
+                      insetPadding: const EdgeInsets.symmetric(
+                          horizontal: 40), // limit dialog width
                       title: const Center(
-                          child: Text(
-                        'ENTER MATERIAL',
-                        style: TextStyle(
-                            fontFamily: "Kanit", color: Colors.deepPurple),
-                      )),
-                      content: TextField(
-                        style: const TextStyle(
-                            fontFamily: "Kanit", color: Colors.deepPurple),
-                        autofocus: true,
-                        decoration: const InputDecoration(
-                          labelStyle: TextStyle(
+                        child: Text(
+                          'ENTER MATERIAL & LENGTHS',
+                          style: TextStyle(
                               fontFamily: "Kanit", color: Colors.deepPurple),
-                          hintStyle: TextStyle(
-                              fontFamily: "Kanit", color: Colors.deepPurple),
-                          hintText: 'Material',
                         ),
-                        onChanged: (v) => temp = v,
+                      ),
+                      content: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                            maxWidth: 300), // cap content width
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Material field: single line, scrolls horizontally if needed
+                            TextField(
+                              controller: materialController,
+                              style: const TextStyle(
+                                  fontFamily: "Kanit",
+                                  color: Colors.deepPurple),
+                              decoration: const InputDecoration(
+                                hintText:
+                                    'Material e.g. "SURFMIST CB 0.55BMT / 2MM GAL"',
+                                hintStyle: TextStyle(
+                                    fontFamily: "Kanit",
+                                    color: Colors.deepPurple),
+                              ),
+                              maxLines: 1,
+                            ),
+                            const SizedBox(height: 16),
+                            // Lengths field: wraps up to 3 lines, then scrolls internally
+                            TextField(
+                              controller: lengthsController,
+                              style: const TextStyle(
+                                  fontFamily: "Kanit",
+                                  color: Colors.deepPurple),
+                              decoration: const InputDecoration(
+                                hintText: 'Lengths e.g. "1@3000, 2@6000.."',
+                                hintStyle: TextStyle(
+                                    fontFamily: "Kanit",
+                                    color: Colors.deepPurple),
+                              ),
+                              keyboardType: TextInputType.multiline,
+                              maxLines: null,
+                            ),
+                          ],
+                        ),
                       ),
                       actions: [
                         TextButton(
-                          onPressed: () =>
-                              Navigator.of(context).pop(), // returns null
+                          onPressed: () => Navigator.of(context).pop(),
                           child: const Text(
                             'Cancel',
                             style: TextStyle(
@@ -84,8 +114,15 @@ class FlashingDesigner extends StatelessWidget {
                           ),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.of(context)
-                              .pop(temp), // returns the input
+                          onPressed: () {
+                            if (materialController.text.trim().isNotEmpty &&
+                                lengthsController.text.trim().isNotEmpty) {
+                              Navigator.of(context).pop({
+                                'material': materialController.text.trim(),
+                                'lengths': lengthsController.text.trim(),
+                              });
+                            }
+                          },
                           child: const Text(
                             'OK',
                             style: TextStyle(
@@ -97,11 +134,13 @@ class FlashingDesigner extends StatelessWidget {
                   },
                 );
 
-                // 2. if they tapped OK and typed something, save it & navigate
-                if (material != null &&
-                    material.trim().isNotEmpty &&
+                // 2. if they tapped OK and both fields have something, save them and navigate
+                if (result != null &&
+                    result['material']!.isNotEmpty &&
+                    result['lengths']!.isNotEmpty &&
                     context.mounted) {
-                  designerModel.material = material.trim();
+                  designerModel.material = result['material']!;
+                  designerModel.lengths = result['lengths']!;
 
                   Navigator.push(
                     context,
@@ -128,6 +167,7 @@ class FlashingDesigner extends StatelessWidget {
                         cf1Length: designerModel.cf_1Length,
                         cf2Length: designerModel.cf_2Length,
                         material: designerModel.material,
+                        lengths: designerModel.lengths,
                       ),
                     ),
                   );

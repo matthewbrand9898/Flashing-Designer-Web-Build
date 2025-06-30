@@ -30,6 +30,7 @@ class FlashingDetails extends StatefulWidget {
       required this.cf1Length,
       required this.cf2Length,
       required this.material,
+      required this.lengths,
       super.key});
   final List<Offset> points;
   final List<Offset> anglePos;
@@ -48,6 +49,7 @@ class FlashingDetails extends StatefulWidget {
   final double cf1Length;
   final double cf2Length;
   final String material;
+  final String lengths;
 
   @override
   State<FlashingDetails> createState() => _RenderFlashingState();
@@ -228,6 +230,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                         cf1Length: widget.cf1Length,
                         cf2Length: widget.cf2Length,
                         material: widget.material,
+                        lengths: widget.lengths,
                       ),
                       const Size(2048, 2048));
                   await downloadBytes(
@@ -253,6 +256,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                     cf1Length: widget.cf1Length,
                     cf2Length: widget.cf2Length,
                     material: widget.material,
+                    lengths: widget.lengths,
                   );
 
                   FlashingDetailsCustomPainter? farPainter =
@@ -274,6 +278,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                     cf1Length: widget.cf1Length,
                     cf2Length: widget.cf2Length,
                     material: widget.material,
+                    lengths: widget.lengths,
                   );
                   _CombinedPainter? combined =
                       _CombinedPainter(near: nearPainter, far: farPainter);
@@ -340,6 +345,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                                   cf1Length: widget.cf1Length,
                                   cf2Length: widget.cf2Length,
                                   material: widget.material,
+                                  lengths: widget.lengths,
                                 ),
                               ),
                             ),
@@ -375,6 +381,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                                   cf1Length: widget.cf1Length,
                                   cf2Length: widget.cf2Length,
                                   material: widget.material,
+                                  lengths: widget.lengths,
                                 ),
                               ),
                             ),
@@ -410,6 +417,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                                   cf1Length: widget.cf1Length,
                                   cf2Length: widget.cf2Length,
                                   material: widget.material,
+                                  lengths: widget.lengths,
                                 ),
                               ),
                             ),
@@ -446,6 +454,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     required this.cf1Length,
     required this.cf2Length,
     required this.material,
+    required this.lengths,
   });
   final int girth;
   final Rect boundingBox;
@@ -464,6 +473,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
   final double cf1Length;
   final double cf2Length;
   final String material;
+  final String lengths;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -628,6 +638,53 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     final materialOffset = Offset(materialDx, materialDy);
 
     materialTextPainter.paint(canvas, materialOffset);
+//endregion
+
+    //region Lengths (auto-sizing)
+    if (taperedState != 1) {
+      final double padding = size.width > 1024 ? 16.0 : 8.0;
+      final double maxWidth = size.width - padding * 2;
+
+// start with your “ideal” size
+      double fontSize = size.width > 1024 ? 36 : 18;
+
+// helper to build & layout a TextPainter at a given fontSize
+      TextPainter _layoutPainter(double fs) {
+        final span = TextSpan(
+          text: 'Lengths: $lengths',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: fs,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+        final tp = TextPainter(
+          text: span,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr,
+        );
+        tp.layout(); // no width constraint yet
+        return tp;
+      }
+
+// layout at nominal
+      TextPainter tp = _layoutPainter(fontSize);
+
+// if it overflows, scale it down
+      if (tp.width > maxWidth) {
+        final scale = maxWidth / tp.width;
+        fontSize *= scale;
+        tp = _layoutPainter(fontSize);
+      }
+
+// now figure out your offset (right-aligned within padding)
+      final dx = padding;
+      final dy =
+          padding + size.width - tp.height - (size.width > 1024 ? 50 : 25);
+
+// paint
+      tp.paint(canvas, Offset(dx, dy));
+    }
 //endregion
 
     //region Hide Angles
