@@ -640,16 +640,16 @@ class FlashingDetailsCustomPainter extends CustomPainter {
 //endregion
 
     //region Lengths (auto-sizing)
-    if (taperedState != 1) {
-      final double padding = size.width > 1024 ? 16.0 : 8.0;
-      final double maxWidth = size.width - padding * 2;
+    if (taperedState != 1 || !tapered) {
+      final double lengthsPadding = size.width > 1024 ? 16.0 : 8.0;
+      final double maxWidth = size.width - lengthsPadding * 2;
 
 // start with your “ideal” size
       double fontSize = size.width > 1024 ? 36 : 18;
 
 // helper to build & layout a TextPainter at a given fontSize
-      TextPainter _layoutPainter(double fs) {
-        final span = TextSpan(
+      TextPainter lengthsLayoutPainter(double fs) {
+        final lengthSpan = TextSpan(
           text: 'Lengths: $lengths',
           style: TextStyle(
             color: Colors.black,
@@ -657,32 +657,34 @@ class FlashingDetailsCustomPainter extends CustomPainter {
             fontWeight: FontWeight.bold,
           ),
         );
-        final tp = TextPainter(
-          text: span,
+        final lengthsTextPaitner = TextPainter(
+          text: lengthSpan,
           textAlign: TextAlign.left,
           textDirection: TextDirection.ltr,
         );
-        tp.layout(); // no width constraint yet
-        return tp;
+        lengthsTextPaitner.layout(); // no width constraint yet
+        return lengthsTextPaitner;
       }
 
 // layout at nominal
-      TextPainter tp = _layoutPainter(fontSize);
+      TextPainter lengthsTextPainter = lengthsLayoutPainter(fontSize);
 
 // if it overflows, scale it down
-      if (tp.width > maxWidth) {
-        final scale = maxWidth / tp.width;
+      if (lengthsTextPainter.width > maxWidth) {
+        final scale = maxWidth / lengthsTextPainter.width;
         fontSize *= scale;
-        tp = _layoutPainter(fontSize);
+        lengthsTextPainter = lengthsLayoutPainter(fontSize);
       }
 
 // now figure out your offset (right-aligned within padding)
-      final dx = padding;
-      final dy =
-          padding + size.width - tp.height - (size.width > 1024 ? 50 : 25);
+      final lengthsDx = lengthsPadding;
+      final lengthsDy = lengthsPadding +
+          size.width -
+          lengthsTextPainter.height -
+          (size.width > 1024 ? 50 : 25);
 
 // paint
-      tp.paint(canvas, Offset(dx, dy));
+      lengthsTextPainter.paint(canvas, Offset(lengthsDx, lengthsDy));
     }
 //endregion
 
