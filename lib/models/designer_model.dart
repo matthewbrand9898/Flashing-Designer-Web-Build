@@ -80,6 +80,8 @@ class DesignerModel extends ChangeNotifier {
   int _colourSide = 1;
   String _material = '';
   String _Lengths = '';
+  String _Job = '';
+  String _Id = '';
 
   //getters
   List<Offset> get points => _points;
@@ -163,6 +165,22 @@ class DesignerModel extends ChangeNotifier {
   set lengths(String v) {
     if (v != _Lengths) {
       _Lengths = v;
+      notifyListeners();
+    }
+  }
+
+  String get job => _Job;
+  set job(String v) {
+    if (v != _Job) {
+      _Job = v;
+      notifyListeners();
+    }
+  }
+
+  String get id => _Id;
+  set id(String v) {
+    if (v != _Id) {
+      _Id = v;
       notifyListeners();
     }
   }

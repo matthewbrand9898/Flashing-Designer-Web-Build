@@ -50,68 +50,96 @@ class FlashingDesigner extends StatelessWidget {
                 final result = await showDialog<Map<String, String>>(
                   context: context,
                   builder: (context) {
-                    final materialController = TextEditingController(text: '');
-                    final lengthsController = TextEditingController(text: '');
+                    final materialController =
+                        TextEditingController(text: designerModel.material);
+                    final lengthsController =
+                        TextEditingController(text: designerModel.lengths);
+                    final jobController =
+                        TextEditingController(text: designerModel.job);
+                    final idController =
+                        TextEditingController(text: designerModel.id);
 
                     return AlertDialog(
                       backgroundColor: Colors.white,
-                      insetPadding: const EdgeInsets.symmetric(
-                          horizontal: 40), // limit dialog width
+                      insetPadding: const EdgeInsets.symmetric(horizontal: 40),
                       title: const Center(
                         child: Text(
-                          'ENTER MATERIAL & LENGTHS',
+                          'ENTER DETAILS',
                           style: TextStyle(
                               fontFamily: "Kanit", color: Colors.deepPurple),
                         ),
                       ),
                       content: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                            maxWidth: 300), // cap content width
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Material field: single line, scrolls horizontally if needed
-                            TextField(
-                              controller: materialController,
-                              style: const TextStyle(
-                                  fontFamily: "Kanit",
-                                  color: Colors.deepPurple),
-                              decoration: const InputDecoration(
-                                hintText:
-                                    'Material e.g. "SURFMIST CB 0.55BMT / 2MM GAL"',
-                                hintStyle: TextStyle(
+                        constraints: const BoxConstraints(maxWidth: 300),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                controller: materialController,
+                                style: const TextStyle(
                                     fontFamily: "Kanit",
                                     color: Colors.deepPurple),
+                                decoration: const InputDecoration(
+                                  hintText: 'Material (Surfmist 0.55BMT CB)',
+                                  hintStyle: TextStyle(
+                                      fontFamily: "Kanit",
+                                      color: Colors.deepPurple),
+                                ),
+                                maxLines: 1,
                               ),
-                              maxLines: 1,
-                            ),
-                            const SizedBox(height: 16),
-                            // Lengths field: wraps up to 3 lines, then scrolls internally
-                            TextField(
-                              controller: lengthsController,
-                              style: const TextStyle(
-                                  fontFamily: "Kanit",
-                                  color: Colors.deepPurple),
-                              decoration: const InputDecoration(
-                                hintText: 'Lengths e.g. "1@3000, 2@6000.."',
-                                hintStyle: TextStyle(
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: lengthsController,
+                                style: const TextStyle(
                                     fontFamily: "Kanit",
                                     color: Colors.deepPurple),
+                                decoration: const InputDecoration(
+                                  hintText: 'Lengths  (1@3000, 2@6000)',
+                                  hintStyle: TextStyle(
+                                      fontFamily: "Kanit",
+                                      color: Colors.deepPurple),
+                                ),
+                                keyboardType: TextInputType.multiline,
+                                maxLines: null,
                               ),
-                              keyboardType: TextInputType.multiline,
-                              maxLines: null,
-                            ),
-                          ],
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: jobController,
+                                style: const TextStyle(
+                                    fontFamily: "Kanit",
+                                    color: Colors.deepPurple),
+                                decoration: const InputDecoration(
+                                  hintText: 'Job',
+                                  hintStyle: TextStyle(
+                                      fontFamily: "Kanit",
+                                      color: Colors.deepPurple),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: idController,
+                                style: const TextStyle(
+                                    fontFamily: "Kanit",
+                                    color: Colors.deepPurple),
+                                decoration: const InputDecoration(
+                                  hintText: 'Flashing ID',
+                                  hintStyle: TextStyle(
+                                      fontFamily: "Kanit",
+                                      color: Colors.deepPurple),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                                fontFamily: "Kanit", color: Colors.deepPurple),
-                          ),
+                          child: const Text('Cancel',
+                              style: TextStyle(
+                                  fontFamily: "Kanit",
+                                  color: Colors.deepPurple)),
                         ),
                         TextButton(
                           onPressed: () {
@@ -120,14 +148,15 @@ class FlashingDesigner extends StatelessWidget {
                               Navigator.of(context).pop({
                                 'material': materialController.text.trim(),
                                 'lengths': lengthsController.text.trim(),
+                                'job': jobController.text.trim(),
+                                'id': idController.text.trim(),
                               });
                             }
                           },
-                          child: const Text(
-                            'OK',
-                            style: TextStyle(
-                                fontFamily: "Kanit", color: Colors.deepPurple),
-                          ),
+                          child: const Text('OK',
+                              style: TextStyle(
+                                  fontFamily: "Kanit",
+                                  color: Colors.deepPurple)),
                         ),
                       ],
                     );
@@ -141,6 +170,8 @@ class FlashingDesigner extends StatelessWidget {
                     context.mounted) {
                   designerModel.material = result['material']!;
                   designerModel.lengths = result['lengths']!;
+                  designerModel.job = result['job']!;
+                  designerModel.id = result['id']!;
 
                   Navigator.push(
                     context,
@@ -168,6 +199,8 @@ class FlashingDesigner extends StatelessWidget {
                         cf2Length: designerModel.cf_2Length,
                         material: designerModel.material,
                         lengths: designerModel.lengths,
+                        job: designerModel.job,
+                        id: designerModel.id,
                       ),
                     ),
                   );

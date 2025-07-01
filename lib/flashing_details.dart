@@ -31,6 +31,8 @@ class FlashingDetails extends StatefulWidget {
       required this.cf2Length,
       required this.material,
       required this.lengths,
+      required this.job,
+      required this.id,
       super.key});
   final List<Offset> points;
   final List<Offset> anglePos;
@@ -50,6 +52,8 @@ class FlashingDetails extends StatefulWidget {
   final double cf2Length;
   final String material;
   final String lengths;
+  final String job;
+  final String id;
 
   @override
   State<FlashingDetails> createState() => _RenderFlashingState();
@@ -230,6 +234,8 @@ class _RenderFlashingState extends State<FlashingDetails> {
                         cf2Length: widget.cf2Length,
                         material: widget.material,
                         lengths: widget.lengths,
+                        job: widget.job,
+                        id: widget.id,
                       ),
                       const Size(2048, 2048));
                   await downloadBytes(
@@ -256,6 +262,8 @@ class _RenderFlashingState extends State<FlashingDetails> {
                     cf2Length: widget.cf2Length,
                     material: widget.material,
                     lengths: widget.lengths,
+                    job: widget.job,
+                    id: widget.id,
                   );
 
                   FlashingDetailsCustomPainter? farPainter =
@@ -278,6 +286,8 @@ class _RenderFlashingState extends State<FlashingDetails> {
                     cf2Length: widget.cf2Length,
                     material: widget.material,
                     lengths: widget.lengths,
+                    job: widget.job,
+                    id: widget.id,
                   );
                   _CombinedPainter? combined =
                       _CombinedPainter(near: nearPainter, far: farPainter);
@@ -345,6 +355,8 @@ class _RenderFlashingState extends State<FlashingDetails> {
                                   cf2Length: widget.cf2Length,
                                   material: widget.material,
                                   lengths: widget.lengths,
+                                  job: widget.job,
+                                  id: widget.id,
                                 ),
                               ),
                             ),
@@ -381,6 +393,8 @@ class _RenderFlashingState extends State<FlashingDetails> {
                                   cf2Length: widget.cf2Length,
                                   material: widget.material,
                                   lengths: widget.lengths,
+                                  job: widget.job,
+                                  id: widget.id,
                                 ),
                               ),
                             ),
@@ -417,6 +431,8 @@ class _RenderFlashingState extends State<FlashingDetails> {
                                   cf2Length: widget.cf2Length,
                                   material: widget.material,
                                   lengths: widget.lengths,
+                                  job: widget.job,
+                                  id: widget.id,
                                 ),
                               ),
                             ),
@@ -454,6 +470,8 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     required this.cf2Length,
     required this.material,
     required this.lengths,
+    required this.job,
+    required this.id,
   });
   final int girth;
   final Rect boundingBox;
@@ -473,6 +491,8 @@ class FlashingDetailsCustomPainter extends CustomPainter {
   final double cf2Length;
   final String material;
   final String lengths;
+  final String job;
+  final String id;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -537,106 +557,94 @@ class FlashingDetailsCustomPainter extends CustomPainter {
               (((size.width - scaledBoundingBox.height) / 2)));
     }
 
-//region Girth
-    TextSpan girthTextSpan = TextSpan(
-      text: 'Girth: ${girth}mm',
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: size.width > 1024 ? 36 : 18,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-    final girthTextPainter = TextPainter(
-      text: girthTextSpan,
-      textAlign: TextAlign.right,
-      textDirection: TextDirection.ltr,
-    )..layout();
+    List<int> calculateLengthMarksFromWidgetText({
+      required List<int> segmentLengths,
+      required int cf1State,
+      required int cf2State,
+      required double cf1Length,
+    }) {
+      List<int> marks = [];
+      double runningTotal = 0;
 
-    final double girthPadding = (size.width > 1024 ? 16 : 8);
-    final girthDx = 0 + girthPadding;
-    final double girthDy = girthPadding;
-    final girthOffset = Offset(girthDx, girthDy);
+      final bool reverse = (cf1State > 0 && cf2State == 0);
+      final List<int> lengths =
+          reverse ? segmentLengths.reversed.toList() : segmentLengths;
 
-    girthTextPainter.paint(canvas, girthOffset);
-//endregion
+      // Optional CF1 at the beginning (only in forward mode)
+      if (!reverse && cf1State > 0) {
+        runningTotal += cf1Length;
+        marks.add(runningTotal.round());
+      }
 
-    //region Taper
-    TextSpan taperSpan = TextSpan(
-      text: 'Taper: ${taperedState == 0 ? 'Near' : 'Far'}',
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: size.width > 1024 ? 36 : 18,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-    final taperTextPainter = TextPainter(
-      text: taperSpan,
-      textAlign: TextAlign.right,
-      textDirection: TextDirection.ltr,
-    )..layout();
+      for (int i = 0; i < lengths.length; i++) {
+        runningTotal += lengths[i];
 
-    final double taperPadding = (size.width > 1024 ? 16 : 8);
-    final taperDx = 0 + girthTextPainter.width + taperPadding + 15;
-    final double taperDy = taperPadding;
-    final taperOffset = Offset(taperDx, taperDy);
+        // Internal marks only (skip first and last)
+        final isInternal = i < lengths.length - 1;
 
-    if (tapered) taperTextPainter.paint(canvas, taperOffset);
-//endregion
+        if (isInternal) {
+          marks.add(runningTotal.round());
+        }
+      }
 
-    //region Bends
-    TextSpan bendsTextSpan = TextSpan(
-      text:
-          'Bends: ${(points.length - 2) + (cf1State.clamp(0, 1) + cf2State.clamp(0, 1))}',
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: size.width > 1024 ? 36 : 18,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-    final bendsTextPainter = TextPainter(
-      text: bendsTextSpan,
-      textAlign: TextAlign.right,
-      textDirection: TextDirection.ltr,
-    )..layout();
+      // Final mark if either CF1 in reverse or CF2 in forward
+      if ((reverse && cf1State > 0) || (!reverse && cf2State > 0)) {
+        marks.add(runningTotal.round());
+      }
 
-    final double bendsPadding = (size.width > 1024 ? 16 : 8);
-    final bendshDx = 0 +
-        girthTextPainter.width +
-        (tapered ? taperTextPainter.width : 0) +
-        bendsPadding +
-        (tapered ? 30 : 15);
-    final double bendsDy = bendsPadding;
-    final bendsOffset = Offset(bendshDx, bendsDy);
+      return marks;
+    }
 
-    bendsTextPainter.paint(canvas, bendsOffset);
-//endregion
+//region Top Row Info (scaled to fit)
+    final double baseFontSize = size.width > 1024 ? 36 : 18;
+    final double padding = size.width > 1024 ? 16 : 8;
+    final double availableWidth = size.width - padding * 2;
 
-    //region Material
-    TextSpan materialTextSpan = TextSpan(
-      text: 'Material: $material',
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: size.width > 1024 ? 36 : 18,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-    final materialTextPainter = TextPainter(
-      text: materialTextSpan,
-      textAlign: TextAlign.right,
-      textDirection: TextDirection.ltr,
-    )..layout();
+    List<String> topRowParts = [];
 
-    final double materialPadding = (size.width > 1024 ? 16 : 8);
-    final materialDx = 0 +
-        girthTextPainter.width +
-        (tapered ? taperTextPainter.width : 0) +
-        bendsTextPainter.width +
-        materialPadding +
-        (tapered ? 45 : 30);
-    final double materialDy = materialPadding;
-    final materialOffset = Offset(materialDx, materialDy);
+    topRowParts.add('Girth: ${girth}mm');
+    if (tapered) {
+      topRowParts.add('Taper: ${taperedState == 0 ? 'Near' : 'Far'}');
+    }
+    topRowParts.add(
+        'Bends: ${(points.length - 2) + (cf1State.clamp(0, 1) + cf2State.clamp(0, 1))}');
+    topRowParts.add('Material: $material');
+    topRowParts.add('(45° and 90° Hidden)');
+    if (job.isNotEmpty) topRowParts.add('Job: $job');
+    if (id.isNotEmpty) topRowParts.add('ID: $id');
 
-    materialTextPainter.paint(canvas, materialOffset);
+    final String combinedText = topRowParts.join(' • ');
+
+// Helper to layout painter
+    TextPainter buildPainter(double fontSize) {
+      return TextPainter(
+        text: TextSpan(
+          text: combinedText,
+          style: TextStyle(
+            fontSize: fontSize,
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textAlign: TextAlign.left,
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: double.infinity);
+    }
+
+// Initial layout
+    double fontSize = baseFontSize;
+    TextPainter painter = buildPainter(fontSize);
+
+// Auto-scale down if it overflows
+    if (painter.width > availableWidth) {
+      final scale = availableWidth / painter.width;
+      fontSize *= scale;
+      painter = buildPainter(fontSize);
+    }
+
+// Final paint
+    final Offset offset = Offset(padding, padding);
+    painter.paint(canvas, offset);
 //endregion
 
     //region Lengths (auto-sizing)
@@ -688,33 +696,54 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     }
 //endregion
 
-    //region Hide Angles
-    TextSpan anglesHiddenTextSpan = TextSpan(
-      text: '(45° and 90° Hidden)',
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: size.width > 1024 ? 36 : 18,
-        fontWeight: FontWeight.bold,
-      ),
+    final marks = calculateLengthMarksFromWidgetText(
+      segmentLengths: lengthWidgetText,
+      cf1State: cf1State,
+      cf2State: cf2State,
+      cf1Length: cf1Length,
     );
-    final anglesHiddenTextPainter = TextPainter(
-      text: anglesHiddenTextSpan,
-      textAlign: TextAlign.right,
-      textDirection: TextDirection.ltr,
-    )..layout();
 
-    final double anglesHiddenPadding = (size.width > 1024 ? 16 : 8);
-    final anglesHiddenDx = 0 +
-        girthTextPainter.width +
-        (tapered ? taperTextPainter.width : 0) +
-        bendsTextPainter.width +
-        materialTextPainter.width +
-        anglesHiddenPadding +
-        (tapered ? 60 : 45);
-    final double anglesHiddenDy = anglesHiddenPadding;
-    final anglesHiddenOffset = Offset(anglesHiddenDx, anglesHiddenDy);
+    if (marks.isNotEmpty) {
+      final marksString = 'Marks: ${marks.join(', ')}';
 
-    anglesHiddenTextPainter.paint(canvas, anglesHiddenOffset);
+      final double marksPadding = size.width > 1024 ? 16.0 : 8.0;
+      final double fontSize = size.width > 1024 ? 36 : 18;
+      final double maxWidth = size.width - marksPadding * 2;
+
+      // Helper
+      TextPainter marksPainter(double fs) {
+        final span = TextSpan(
+          text: marksString,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: fs,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+        final tp = TextPainter(
+          text: span,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr,
+        );
+        tp.layout();
+        return tp;
+      }
+
+      double fs = fontSize;
+      TextPainter tp = marksPainter(fs);
+
+      if (tp.width > maxWidth) {
+        fs *= maxWidth / tp.width;
+        tp = marksPainter(fs);
+      }
+
+      final double marksDy = marksPadding +
+          size.width -
+          tp.height -
+          (size.width > 1024 ? 90 : 45); // place above lengths
+
+      tp.paint(canvas, Offset(marksPadding, marksDy));
+    }
 //endregion
 
     //region Draw Lengths
