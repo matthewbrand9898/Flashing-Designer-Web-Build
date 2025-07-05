@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:three_js/three_js.dart' as three;
-
+import 'package:three_js_text/three_js_text.dart';
 import 'package:three_js_controls/three_js_controls.dart';
 import 'package:web/web.dart' as web;
 
@@ -55,28 +55,36 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
   List<Offset> _scale2D(List<Offset> pts, double factor) =>
       pts.map((o) => Offset(o.dx / factor, o.dy / factor)).toList();
 
-  three.BufferGeometry createSegmentQuad(
-      Offset p1, Offset p2, Offset p1Far, Offset p2Far, double depth) {
-    // 1) Pack 4 vertices: front(p1,p2) then back(p2,p1)
-    final verts = <double>[
-      p1.dx, p1.dy, 0.0, // v0
-      p2.dx, p2.dy, 0.0, // v1
-      p2Far.dx, p2Far.dy, depth, // v2
-      p1Far.dx, p1Far.dy, depth, // v3
-    ];
+  three.BufferGeometry createSegmentsGeometry(
+    List<Offset> near,
+    List<Offset> far,
+    double depth,
+  ) {
+    final verts = <double>[];
+    final idx = <int>[];
 
-    // 2) Two triangles: (v0,v1,v2) and (v0,v2,v3)
-    final idx = <int>[
-      0,
-      1,
-      2,
-      0,
-      2,
-      3,
-    ];
+    for (var i = 0; i < near.length - 1; i++) {
+      final p1 = near[i];
+      final p2 = near[i + 1];
+      final p2Far = far[i + 1];
+      final p1Far = far[i];
 
-    // 3) Build and return the BufferGeometry
-    return three.BufferGeometry()
+      // each quad adds 4 verts, so baseIndex = verts.length/3 before push
+      final base = verts.length ~/ 3;
+      verts.addAll([
+        p1.dx, p1.dy, 0.0, // v0
+        p2.dx, p2.dy, 0.0, // v1
+        p2Far.dx, p2Far.dy, depth, // v2
+        p1Far.dx, p1Far.dy, depth, // v3
+      ]);
+
+      idx.addAll([
+        base, base + 1, base + 2, // first tri
+        base, base + 2, base + 3, // second tri
+      ]);
+    }
+
+    final geom = three.BufferGeometry()
       ..setAttribute(
         three.Attribute.position,
         three.Float32BufferAttribute.fromList(verts, 3),
@@ -84,7 +92,10 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
       ..setIndex(
         three.Uint16BufferAttribute.fromList(idx, 1),
       )
+      ..scale(1, -1, 1)
       ..computeVertexNormals();
+
+    return geom;
   }
 
   @override
@@ -99,6 +110,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
       },
       setup: _setupScene,
       settings: three.Settings(
+        enableShadowMap: false,
         // optional: tweak antialias, pixel ratio, etc.
         renderOptions: {
           'antialias': true,
@@ -107,7 +119,52 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
     );
   }
 
-  void _setupScene() {
+  void _setupScene() async {
+    Future<TYPRFont> loadFont() async {
+      final loader = TYPRLoader();
+      final font = await loader.fromAsset("fonts/RobotoMono-Regular.ttf");
+      loader.dispose();
+      return font!;
+    }
+
+    three.Mesh createLabelMesh({
+      required TYPRFont font,
+      required String text,
+      required double size,
+      required double depth,
+      required three.Vector3 position,
+    }) {
+      // Build text geometry
+      final textGeo = TextGeometry(
+        text,
+        TextGeometryOptions(
+          font: font,
+          size: size,
+          depth: depth,
+          curveSegments: 1,
+          bevelEnabled: false,
+        ),
+      );
+
+      textGeo.computeBoundingBox();
+
+      // Center horizontally
+      final bb = textGeo.boundingBox!;
+      final xOffset = -0.5 * (bb.max.x - bb.min.x);
+      textGeo.translate(xOffset, 0, 0);
+
+      // Build materials (white, flat shading)
+      final materials = three.MeshMatcapMaterial.fromMap({
+        "color": 0xFFFFFFFF,
+        "flatShading": false,
+      });
+
+      // Create mesh and position
+      final mesh = three.Mesh(textGeo, materials);
+      mesh.position = position;
+      return mesh;
+    }
+
     // 1) New scene + background
     threeJs.scene = three.Scene();
     threeJs.scene.background = three.Color.fromHex32(0xFFFFFFFF);
@@ -123,10 +180,9 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
 
     // 3) Orbit & pan controls
     controls = OrbitControls(threeJs.camera, threeJs.globalKey)
-      ..enableDamping = true
-      ..dampingFactor = 0.1
+      ..enableDamping = false
       ..screenSpacePanning = false
-      ..minDistance = 2
+      ..minDistance = 1
       ..maxDistance = 10
       ..target.setX(0)
       ..target.setY(0)
@@ -160,60 +216,46 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
     }
 
     const baseHex = 0xFF673AB7;
-    final rnd = math.Random();
-    for (var i = 0; i < normalizedPoints.length - 1; i++) {
-      final p1 = normalizedPoints[i];
-      final p2 = normalizedPoints[i + 1];
-      final p1Far = normalizedPointsFar[i];
-      final p2Far = normalizedPointsFar[i + 1];
-      final geom = createSegmentQuad(p1Far, p2Far, p1, p2, 4);
+// …then in your scene setup:
+    final merged =
+        createSegmentsGeometry(normalizedPointsFar, normalizedPoints, 4);
+    final mat = three.MeshMatcapMaterial()
+      ..color = three.Color.fromHex32(baseHex)
+      ..side = three.DoubleSide
+      ..flatShading = true;
+    threeJs.scene.add(three.Mesh(merged, mat));
 
-      final brightness = 0.7 + rnd.nextDouble() * 0.3;
+// edges
+    final edgesGeom = three.EdgesGeometry(merged, 10);
+    final edgeMat = three.LineBasicMaterial.fromMap({
+      'color': 0x000000,
+      'linewidth': 3 / web.window.devicePixelRatio,
+    });
+    threeJs.scene.add(three.LineSegments(edgesGeom, edgeMat));
 
-      final faceColor = three.Color.fromHex32(baseHex);
-      faceColor.setRGB(
-        faceColor.red * brightness,
-        faceColor.green * brightness,
-        faceColor.blue * brightness,
-      );
+    final font = await loadFont();
 
-      final mat = three.MeshStandardMaterial();
-      mat.color = three.Color.fromHex32(faceColor.getHex());
-      mat.side = three.DoubleSide;
-      mat.flatShading = false;
-      final mesh = three.Mesh(geom, mat);
-      mesh.scale
-          .setX(1.0) // left‐right unchanged
-          .setY(-1.0) // flip up/down
-          .setZ(1.0);
-      threeJs.scene.add(mesh);
-      // 1) build an edge‐only geometry from your quad’s geometry
-      final edgesGeom = three.EdgesGeometry(mesh.geometry!, 10);
+// Adjust size/depth to taste
+    const double labelSize = 0.1;
+    const double labelDepth = 0.01;
 
-// 2) make a black (or any color) line material
-      final edgeMat = three.LineBasicMaterial.fromMap({
-        'color': 0x000000,
-        'linewidth': 3 / web.window.devicePixelRatio,
-      });
+    final nearLabel = createLabelMesh(
+      font: font,
+      text: "NEAR",
+      size: labelSize,
+      depth: labelDepth,
+      position: three.Vector3(0.5, -0.5, 4.1),
+    );
+    threeJs.scene.add(nearLabel);
 
-// 3) create a LineSegments object and add it
-      final edgeLines = three.LineSegments(edgesGeom, edgeMat);
-      edgeLines.scale
-          .setX(1.0) // left‐right unchanged
-          .setY(-1.0) // flip up/down
-          .setZ(1.0);
-      threeJs.scene.add(edgeLines);
-    }
-    // 5) Lights
-    final light1 = three.DirectionalLight(0xFF673AB7, 3);
-
-    light1.position.setValues(0, 1, -2);
-
-    threeJs.scene.add(light1);
-
-    final ambient = three.AmbientLight(0xFF673AB7, 4);
-
-    threeJs.scene.add(ambient);
+    final farLabel = createLabelMesh(
+      font: font,
+      text: "FAR",
+      size: labelSize,
+      depth: labelDepth,
+      position: three.Vector3(0.5, -0.5, -0.1),
+    );
+    threeJs.scene.add(farLabel);
   }
 
   @override

@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'dart:ui' as ui;
+import 'package:ars_flashings/pdf_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 import 'package:web/web.dart' as web;
 
+import 'flashing_thumbnail_list.dart';
 import 'helper_functions.dart';
 import 'models/designer_model.dart';
 
@@ -188,6 +190,108 @@ class _RenderFlashingState extends State<FlashingDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: ElevatedButton(
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+        onPressed: () async {
+          if (!kIsWeb) return;
+
+          if (!widget.tapered) {
+            Uint8List? bytes = await generateImageBytes(
+                FlashingDetailsCustomPainter(
+                  points: widget.points,
+                  boundingBox: widget.boundingBox,
+                  lengthWidgetPositions: widget.lengthPos,
+                  lengthWidgetPositionOffsets: widget.lengthPosOffsets,
+                  angleWidgetPositions: widget.anglePos,
+                  anlgeWidgetPositionOffsets: widget.anglePosOffsets,
+                  girth: widget.girth,
+                  lengthWidgetText: widget.lengthWidgetText,
+                  colourPosition: widget.colourPosition,
+                  colourMidPoint: widget.colourMidPoint,
+                  tapered: widget.tapered,
+                  taperedState: widget.taperedState,
+                  cf1State: widget.cf1State,
+                  cf2State: widget.cf2State,
+                  cf1Length: widget.cf1Length,
+                  cf2Length: widget.cf2Length,
+                  material: widget.material,
+                  lengths: widget.lengths,
+                  job: widget.job,
+                  id: widget.id,
+                ),
+                const Size(2048, 2048));
+            await downloadBytes(
+                bytes, 'Flashing${DateTime.timestamp().toLocal()}.png');
+            bytes = null;
+          } else {
+            FlashingDetailsCustomPainter? nearPainter =
+                FlashingDetailsCustomPainter(
+              girth: nearGirth,
+              points: nearPoints,
+              boundingBox: nearBoundingBox,
+              lengthWidgetPositions: nearLengthPositions,
+              lengthWidgetPositionOffsets: nearLengthPositionOffsets,
+              angleWidgetPositions: nearAnglePositions,
+              anlgeWidgetPositionOffsets: nearAnglePositionOffsets,
+              lengthWidgetText: nearLengthWidgetText,
+              colourPosition: nearColourPosition,
+              colourMidPoint: nearColourMidPoint,
+              tapered: nearTapered,
+              taperedState: nearTaperedState,
+              cf1State: widget.cf1State,
+              cf2State: widget.cf2State,
+              cf1Length: widget.cf1Length,
+              cf2Length: widget.cf2Length,
+              material: widget.material,
+              lengths: widget.lengths,
+              job: widget.job,
+              id: widget.id,
+            );
+
+            FlashingDetailsCustomPainter? farPainter =
+                FlashingDetailsCustomPainter(
+              girth: farGirth,
+              points: farPoints,
+              boundingBox: farBoundingBox,
+              lengthWidgetPositions: farLengthPositions,
+              lengthWidgetPositionOffsets: farLengthPositionOffsets,
+              angleWidgetPositions: farAnglePositions,
+              anlgeWidgetPositionOffsets: farAnglePositionOffsets,
+              lengthWidgetText: farLengthWidgetText,
+              colourPosition: farColourPosition,
+              colourMidPoint: farColourMidPoint,
+              tapered: farTapered,
+              taperedState: farTaperedState,
+              cf1State: widget.cf1State,
+              cf2State: widget.cf2State,
+              cf1Length: widget.cf1Length,
+              cf2Length: widget.cf2Length,
+              material: widget.material,
+              lengths: widget.lengths,
+              job: widget.job,
+              id: widget.id,
+            );
+            _CombinedPainter? combined =
+                _CombinedPainter(near: nearPainter, far: farPainter);
+            Uint8List? taperedBytes =
+                await generateImageBytes(combined, const Size(4096, 2048));
+            await downloadBytes(taperedBytes,
+                'TaperedFlashing${DateTime.timestamp().toLocal()}.png');
+            combined = null;
+            taperedBytes = null;
+            nearPainter = null;
+            farPainter = null;
+          }
+        },
+        child: const Text(
+          'DOWNLOAD IMAGE',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Kanit',
+          ),
+        ),
+      ),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: IconButton(
@@ -202,7 +306,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
         ),
         backgroundColor: Colors.deepPurple.shade500,
         title: const Text(
-          "Generate Image",
+          "FLASHING DETAILS",
           style: TextStyle(fontFamily: "Kanit", color: Colors.white),
         ),
         centerTitle: true,
@@ -212,7 +316,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                   foregroundColor: Colors.deepPurple.shade50),
               onPressed: () async {
                 if (!kIsWeb) return;
-
+                PdfManager pdfManager = PdfManager();
                 if (!widget.tapered) {
                   Uint8List? bytes = await generateImageBytes(
                       FlashingDetailsCustomPainter(
@@ -238,8 +342,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                         id: widget.id,
                       ),
                       const Size(2048, 2048));
-                  await downloadBytes(
-                      bytes, 'Flashing${DateTime.timestamp().toLocal()}.png');
+                  pdfManager.addImage(bytes);
                   bytes = null;
                 } else {
                   FlashingDetailsCustomPainter? nearPainter =
@@ -293,16 +396,21 @@ class _RenderFlashingState extends State<FlashingDetails> {
                       _CombinedPainter(near: nearPainter, far: farPainter);
                   Uint8List? taperedBytes = await generateImageBytes(
                       combined, const Size(4096, 2048));
-                  await downloadBytes(taperedBytes,
-                      'TaperedFlashing${DateTime.timestamp().toLocal()}.png');
+                  pdfManager.addImage(taperedBytes);
                   combined = null;
                   taperedBytes = null;
                   nearPainter = null;
                   farPainter = null;
                 }
+                if (!context.mounted) return;
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const FlashingGridPage(),
+                    ));
               },
               child: const Text(
-                "DOWNLOAD",
+                "NEXT",
                 style: TextStyle(fontFamily: "Kanit", color: Colors.white),
               )),
           const Padding(padding: EdgeInsets.only(right: 15)),

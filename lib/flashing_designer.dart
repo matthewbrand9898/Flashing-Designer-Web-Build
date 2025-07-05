@@ -28,6 +28,7 @@ class FlashingDesigner extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
+        backgroundColor: Colors.white,
         resizeToAvoidBottomInset: false,
         floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
         appBar: AppBar(
