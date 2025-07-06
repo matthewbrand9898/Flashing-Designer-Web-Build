@@ -200,13 +200,13 @@ class PdfManager {
     final parts = [arrayBuf].toJS as JSArray<web.BlobPart>;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: 'application/pdf'));
     final url = web.URL.createObjectURL(blob);
-    // final anchor = (web.document.createElement('a') as web.HTMLAnchorElement)
-    //..href = url
-    // ..download = 'FlashingPDF-${DateTime.now().toLocal()}.pdf'
-    // ..style.display = 'none';
-    //  web.document.body!.append(anchor);
-    //  anchor.click();
-    // web.document.body!.removeChild(anchor);
+    final anchor = (web.document.createElement('a') as web.HTMLAnchorElement)
+      ..href = url
+      ..download = 'FlashingPDF-${DateTime.now().toLocal()}.pdf'
+      ..style.display = 'none';
+    web.document.body!.append(anchor);
+    anchor.click();
+    web.document.body!.removeChild(anchor);
     web.window.open(url, '_blank');
 
     // web.URL.revokeObjectURL(url);
