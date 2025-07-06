@@ -122,7 +122,7 @@ class PdfManager {
     const cellW = (contentW - innerPad) / 2, cellH = (contentH - innerPad) / 2;
 
     late List<List<bool>> occupancy;
-    late var page; // JS proxy for the current page
+    late PDFPageJS page; // JS proxy for the current page
 
     void newPage() {
       page = doc.addPage(([pageW, pageH] as List<JSAny?>).toJS);
