@@ -295,7 +295,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             // Pop this route off the stack:
             Navigator.of(context).pop();
@@ -392,18 +392,21 @@ class _RenderFlashingState extends State<FlashingDetails> {
                     job: widget.job,
                     id: widget.id,
                   );
-                  _CombinedPainter? combined =
-                      _CombinedPainter(near: nearPainter, far: farPainter);
-                  Uint8List? taperedBytes = await generateImageBytes(
-                      combined, const Size(4096, 2048));
-                  pdfManager.addImage(taperedBytes);
-                  combined = null;
-                  taperedBytes = null;
+                  // _CombinedPainter? combined =
+                  //    _CombinedPainter(near: nearPainter, far: farPainter);
+                  Uint8List? nearBytes = await generateImageBytes(
+                      nearPainter, const Size(2048, 2048));
+                  Uint8List? farBytes = await generateImageBytes(
+                      farPainter, const Size(2048, 2048));
+                  pdfManager.addTaperedImage(nearBytes);
+                  pdfManager.addTaperedImage(farBytes);
+                  nearBytes = null;
+                  farBytes = null;
                   nearPainter = null;
                   farPainter = null;
                 }
                 if (!context.mounted) return;
-                Navigator.push(
+                Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (_) => const FlashingGridPage(),

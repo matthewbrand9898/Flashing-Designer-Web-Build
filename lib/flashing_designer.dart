@@ -17,6 +17,7 @@ import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 import 'cf2_widget.dart';
 import 'flashing_details.dart';
 import 'draw.dart';
+import 'flashing_thumbnail_list.dart';
 import 'helper_functions.dart';
 import 'models/designer_model.dart';
 
@@ -32,6 +33,16 @@ class FlashingDesigner extends StatelessWidget {
         resizeToAvoidBottomInset: false,
         floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
         appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              // Pop this route off the stack:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const FlashingGridPage()),
+              );
+            },
+          ),
           backgroundColor: Colors.deepPurple.shade500,
           title: const Text(
             "DESIGNER",

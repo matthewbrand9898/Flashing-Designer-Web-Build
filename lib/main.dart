@@ -1,5 +1,6 @@
 import 'package:provider/provider.dart';
-import 'flashing_designer.dart';
+
+import 'flashing_thumbnail_list.dart';
 import 'models/designer_model.dart';
 import 'package:flutter/material.dart';
 
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         colorScheme:
             ColorScheme.fromSeed(seedColor: Colors.deepPurple.shade500),
       ),
-      home: FlashingDesigner(),
+      home: const FlashingGridPage(),
     );
   }
 }
