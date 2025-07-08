@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:web/web.dart' as web;
 
 import 'flashing_thumbnail_list.dart';
 import 'models/designer_model.dart';
@@ -18,9 +20,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    // Check if it's an installed PWA on web
+    final isPwa =
+        kIsWeb && web.window.matchMedia('(display-mode: standalone)').matches;
+    // Check if it's running in a web iOS browser
+    final isWebiOS = kIsWeb &&
+        web.window.navigator.userAgent.contains(
+          RegExp(r'iPad|iPod|iPhone'),
+        );
+
+    // The main MaterialApp
+    final app = MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flashings',
+      title: 'FLASHING DESIGNER',
       theme: ThemeData(
         cardTheme: const CardTheme(
           margin: EdgeInsets.zero,
@@ -29,10 +41,23 @@ class MyApp extends StatelessWidget {
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
         useMaterial3: true,
-        colorScheme:
-            ColorScheme.fromSeed(seedColor: Colors.deepPurple.shade500),
       ),
       home: const FlashingGridPage(),
+    );
+
+    // Wrap with a deep purple background and add bottom inset container
+    return Container(
+      color: Colors.deepPurple,
+      child: Column(
+        children: [
+          Expanded(child: app),
+          if (isPwa && isWebiOS)
+            Container(
+              height: 50,
+              color: Colors.deepPurple,
+            ),
+        ],
+      ),
     );
   }
 }

@@ -207,7 +207,7 @@ class PdfManager {
     web.document.body!.append(anchor);
     anchor.click();
     web.document.body!.removeChild(anchor);
-    web.window.open(url, '_blank');
+    //web.window.open(url, '_blank');
 
     // web.URL.revokeObjectURL(url);
   }

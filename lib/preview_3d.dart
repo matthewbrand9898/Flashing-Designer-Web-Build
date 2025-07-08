@@ -155,7 +155,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
 
       // Build materials (white, flat shading)
       final materials = three.MeshMatcapMaterial.fromMap({
-        "color": 0xFFFFFFFF,
+        "color": 0x1c1c1c,
         "flatShading": false,
       });
 
@@ -262,6 +262,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
   Widget build(BuildContext context) {
     // Build the WebGL canvas
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
           leading: IconButton(
               onPressed: () {

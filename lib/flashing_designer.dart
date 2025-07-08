@@ -29,7 +29,7 @@ class FlashingDesigner extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey.shade50,
         resizeToAvoidBottomInset: false,
         floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
         appBar: AppBar(
@@ -56,7 +56,7 @@ class FlashingDesigner extends StatelessWidget {
               onPressed: () async {
                 final designerModel =
                     Provider.of<DesignerModel>(context, listen: false);
-                if (designerModel.points.isEmpty) return;
+                if (designerModel.points.length <= 1) return;
 
                 // 1. show the dialog and await back both material + lengths
                 final result = await showDialog<Map<String, String>>(
@@ -72,15 +72,39 @@ class FlashingDesigner extends StatelessWidget {
                         TextEditingController(text: designerModel.id);
 
                     return AlertDialog(
+                      // give the whole dialog rounded corners
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      clipBehavior:
+                          Clip.antiAlias, // ensure children respect the shape
                       backgroundColor: Colors.white,
                       insetPadding: const EdgeInsets.symmetric(horizontal: 40),
-                      title: const Center(
-                        child: Text(
-                          'ENTER DETAILS',
-                          style: TextStyle(
-                              fontFamily: "Kanit", color: Colors.deepPurple),
+
+                      // zero padding so our container fills the top edge
+                      titlePadding: EdgeInsets.zero,
+                      title: Container(
+                        // only round the top corners to match the dialog
+                        decoration: const BoxDecoration(
+                          color: Colors.deepPurple,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(16),
+                            topRight: Radius.circular(16),
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: const Center(
+                          child: Text(
+                            'ENTER DETAILS',
+                            style: TextStyle(
+                              fontFamily: 'Kanit',
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
+
                       content: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 300),
                         child: SingleChildScrollView(
@@ -90,68 +114,99 @@ class FlashingDesigner extends StatelessWidget {
                               TextField(
                                 controller: materialController,
                                 style: const TextStyle(
-                                    fontFamily: "Kanit",
-                                    color: Colors.deepPurple),
-                                decoration: const InputDecoration(
-                                  hintText: 'Material (Surfmist 0.55BMT CB)',
-                                  hintStyle: TextStyle(
-                                      fontFamily: "Kanit",
-                                      color: Colors.deepPurple),
+                                  fontFamily: 'Kanit',
+                                  color: Colors.black,
                                 ),
-                                maxLines: 1,
+                                decoration: InputDecoration(
+                                  hintText: 'Material (Surfmist 0.55BMT CB)',
+                                  hintStyle:
+                                      const TextStyle(color: Colors.black54),
+                                  enabledBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.black),
+                                  ),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.deepPurple),
+                                  ),
+                                ),
                               ),
                               const SizedBox(height: 16),
                               TextField(
                                 controller: lengthsController,
-                                style: const TextStyle(
-                                    fontFamily: "Kanit",
-                                    color: Colors.deepPurple),
-                                decoration: const InputDecoration(
-                                  hintText: 'Lengths  (1@3000, 2@6000)',
-                                  hintStyle: TextStyle(
-                                      fontFamily: "Kanit",
-                                      color: Colors.deepPurple),
-                                ),
                                 keyboardType: TextInputType.multiline,
                                 maxLines: null,
+                                style: const TextStyle(
+                                  fontFamily: 'Kanit',
+                                  color: Colors.black,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Lengths  (1@3000, 2@6000)',
+                                  hintStyle:
+                                      const TextStyle(color: Colors.black54),
+                                  enabledBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.black),
+                                  ),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.deepPurple),
+                                  ),
+                                ),
                               ),
                               const SizedBox(height: 16),
                               TextField(
                                 controller: jobController,
                                 style: const TextStyle(
-                                    fontFamily: "Kanit",
-                                    color: Colors.deepPurple),
-                                decoration: const InputDecoration(
+                                  fontFamily: 'Kanit',
+                                  color: Colors.black,
+                                ),
+                                decoration: InputDecoration(
                                   hintText: 'Job',
-                                  hintStyle: TextStyle(
-                                      fontFamily: "Kanit",
-                                      color: Colors.deepPurple),
+                                  hintStyle:
+                                      const TextStyle(color: Colors.black54),
+                                  enabledBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.black),
+                                  ),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.deepPurple),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 16),
                               TextField(
                                 controller: idController,
                                 style: const TextStyle(
-                                    fontFamily: "Kanit",
-                                    color: Colors.deepPurple),
-                                decoration: const InputDecoration(
+                                  fontFamily: 'Kanit',
+                                  color: Colors.black,
+                                ),
+                                decoration: InputDecoration(
                                   hintText: 'Flashing ID',
-                                  hintStyle: TextStyle(
-                                      fontFamily: "Kanit",
-                                      color: Colors.deepPurple),
+                                  hintStyle:
+                                      const TextStyle(color: Colors.black54),
+                                  enabledBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.black),
+                                  ),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.deepPurple),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
+
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Cancel',
-                              style: TextStyle(
-                                  fontFamily: "Kanit",
-                                  color: Colors.deepPurple)),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontFamily: 'Kanit',
+                              color: Colors.red,
+                            ),
+                          ),
                         ),
                         TextButton(
                           onPressed: () {
@@ -165,10 +220,13 @@ class FlashingDesigner extends StatelessWidget {
                               });
                             }
                           },
-                          child: const Text('OK',
-                              style: TextStyle(
-                                  fontFamily: "Kanit",
-                                  color: Colors.deepPurple)),
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(
+                              fontFamily: 'Kanit',
+                              color: Colors.deepPurple,
+                            ),
+                          ),
                         ),
                       ],
                     );

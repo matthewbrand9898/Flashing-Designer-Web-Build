@@ -317,6 +317,7 @@ class DesignerModel extends ChangeNotifier {
   void removeNearPoint() {
     if (_nearPoints.isNotEmpty) {
       _nearPoints.removeLast();
+      _nearLengthWidgetText.removeLast();
       UpdateGirth();
     }
   }
@@ -324,6 +325,7 @@ class DesignerModel extends ChangeNotifier {
   void removeFarPoint() {
     if (_farPoints.isNotEmpty) {
       _farPoints.removeLast();
+      _farLengthWidgetText.removeLast();
       UpdateGirth();
     }
   }

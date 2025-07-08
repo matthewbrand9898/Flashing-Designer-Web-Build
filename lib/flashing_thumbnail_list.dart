@@ -21,7 +21,7 @@ class FlashingGridPageState extends State<FlashingGridPage> {
     final taperedImages = _manager.taperedImages;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.deepPurple,
@@ -54,8 +54,8 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                 physics: const BouncingScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: columns,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 4,
+                  crossAxisSpacing: 4,
                   childAspectRatio: 1,
                 ),
                 // +1 for the ADD button in slot 0
@@ -78,30 +78,34 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                       child: SizedBox(
                         width: 600,
                         height: 600,
-                        child: Card(
-                          margin: const EdgeInsets.all(8),
-                          elevation: 8,
-                          color: Colors.white,
-                          clipBehavior: Clip.antiAlias,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.add_box_rounded,
-                                    size: 48, color: Colors.deepPurple),
-                                SizedBox(height: 8),
-                                Text(
-                                  'ADD FLASHING',
-                                  style: TextStyle(
-                                    fontFamily: 'Kanit',
-                                    color: Colors.deepPurple,
-                                    fontWeight: FontWeight.bold,
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 16.0, right: 16.0, top: 4.0, bottom: 4.0),
+                          child: Card(
+                            margin: const EdgeInsets.all(16),
+                            elevation: 8,
+                            color: Colors.white,
+                            clipBehavior: Clip.antiAlias,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.add_box_rounded,
+                                      size: 48, color: Colors.deepPurple),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'ADD FLASHING',
+                                    style: TextStyle(
+                                      fontFamily: 'Kanit',
+                                      color: Colors.deepPurple,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -183,23 +187,27 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                         SizedBox(
                           width: 600,
                           height: 600,
-                          child: Card(
-                            margin: const EdgeInsets.all(8),
-                            elevation: 8,
-                            color: Colors.white,
-                            clipBehavior: Clip.antiAlias,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ClipRRect(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 16.0, right: 16.0, top: 4.0, bottom: 4.0),
+                            child: Card(
+                              margin: const EdgeInsets.all(16),
+                              elevation: 8,
+                              color: Colors.white,
+                              clipBehavior: Clip.antiAlias,
+                              shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.memory(
-                                  imgBytes,
-                                  width: 600,
-                                  height: 600,
-                                  fit: BoxFit.cover,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.memory(
+                                    imgBytes,
+                                    width: 600,
+                                    height: 600,
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               ),
                             ),
@@ -207,7 +215,7 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                         ),
                         Positioned(
                           top: 32,
-                          right: 32,
+                          right: 41,
                           child: GestureDetector(
                             onTap: removeCallback,
                             child: Container(

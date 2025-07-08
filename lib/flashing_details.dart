@@ -291,7 +291,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
           ),
         ),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: IconButton(
@@ -426,23 +426,23 @@ class _RenderFlashingState extends State<FlashingDetails> {
           ),
           Expanded(
             child: Center(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    bottom: 16.0, left: 16.0, right: 16.0),
-                child: SingleChildScrollView(
-                  child: Wrap(
-                    runSpacing: 20,
-                    spacing: 20,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      if (!widget.tapered)
-                        FittedBox(
+              child: SingleChildScrollView(
+                child: Wrap(
+                  runSpacing: 20,
+                  spacing: 20,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    if (!widget.tapered)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 32.0, right: 32.0, top: 8.0, bottom: 8.0),
+                        child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Card(
                             color: Colors.white,
                             elevation: 8,
                             child: Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(16.0),
                               child: CustomPaint(
                                 size: const Size(1024, 1024),
                                 painter: FlashingDetailsCustomPainter(
@@ -473,14 +473,18 @@ class _RenderFlashingState extends State<FlashingDetails> {
                             ),
                           ),
                         ),
-                      if (widget.tapered)
-                        FittedBox(
+                      ),
+                    if (widget.tapered)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 32.0, right: 32.0, top: 8.0, bottom: 8.0),
+                        child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Card(
                             color: Colors.white,
                             elevation: 8,
                             child: Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(16.0),
                               child: CustomPaint(
                                 size: const Size(1024, 1024),
                                 painter: FlashingDetailsCustomPainter(
@@ -511,14 +515,18 @@ class _RenderFlashingState extends State<FlashingDetails> {
                             ),
                           ),
                         ),
-                      if (widget.tapered)
-                        FittedBox(
+                      ),
+                    if (widget.tapered)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 32.0, right: 32.0, top: 8.0, bottom: 8.0),
+                        child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Card(
                             color: Colors.white,
                             elevation: 8,
                             child: Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(16.0),
                               child: CustomPaint(
                                 size: const Size(1024, 1024),
                                 painter: FlashingDetailsCustomPainter(
@@ -549,8 +557,8 @@ class _RenderFlashingState extends State<FlashingDetails> {
                             ),
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
             ),
