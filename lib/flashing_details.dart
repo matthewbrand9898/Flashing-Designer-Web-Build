@@ -760,6 +760,31 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     painter.paint(canvas, offset);
 //endregion
 
+    //region DashedLines
+    if (tapered) {
+      double taperDashAngle =
+          taperedState == 1 ? -5 * math.pi / 4.2 : -5 * math.pi / 4.2 + math.pi;
+      for (int i = 0; i < points.length; i++) {
+        drawDashedLine(
+          canvas,
+          Offset(
+              (points[i].dx / containerScale * scale -
+                      (scaledBoundingBox.left)) +
+                  (((size.width - scaledBoundingBox.width) / 2)),
+              (points[i].dy / containerScale * scale -
+                      (scaledBoundingBox.top)) +
+                  (((size.width - scaledBoundingBox.height) / 2))),
+          taperDashAngle,
+          linesPaint,
+          dashWidth: (size.width > 1024 ? 10 : 5),
+          dashSpace: (size.width > 1024 ? 16 : 8),
+          maxLength: (size.width > 1024 ? 200 : 100),
+        );
+      }
+    }
+
+    //endregion
+
     //region Lengths (auto-sizing)
     if (taperedState != 1 || !tapered) {
       final double lengthsPadding = size.width > 1024 ? 16.0 : 8.0;
@@ -808,7 +833,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
       lengthsTextPainter.paint(canvas, Offset(lengthsDx, lengthsDy));
     }
 //endregion
-
+//region Marks
     final marks = calculateLengthMarksFromWidgetText(
       segmentLengths: lengthWidgetText,
       cf1State: cf1State,
@@ -869,8 +894,8 @@ class FlashingDetailsCustomPainter extends CustomPainter {
               lengthWidgetPositions[i] - lengthWidgetPositionOffsets[i]) *
           10 *
           (size.width > 1024
-              ? ((boundingBox.longestSide / 300) * 5).clamp(2, 4)
-              : ((boundingBox.longestSide / 300) * 2).clamp(0.5, 2));
+              ? ((boundingBox.longestSide / 300) * 5).clamp(2.1, 4.2)
+              : ((boundingBox.longestSide / 300) * 2).clamp(0.6, 2.2));
 
       final textSpan = TextSpan(
         text: '${lengthWidgetText[i]}',
@@ -996,31 +1021,6 @@ class FlashingDetailsCustomPainter extends CustomPainter {
                     : ((boundingBox.longestSide / 300) * 2).clamp(0.5, 2))) -
             Offset(colourTextPainter.width / 2, colourTextPainter.height / 2));
 //endregion
-
-    //region DashedLines
-    if (tapered) {
-      double taperDashAngle =
-          taperedState == 1 ? -5 * math.pi / 4.2 : -5 * math.pi / 4.2 + math.pi;
-      for (int i = 0; i < points.length; i++) {
-        drawDashedLine(
-          canvas,
-          Offset(
-              (points[i].dx / containerScale * scale -
-                      (scaledBoundingBox.left)) +
-                  (((size.width - scaledBoundingBox.width) / 2)),
-              (points[i].dy / containerScale * scale -
-                      (scaledBoundingBox.top)) +
-                  (((size.width - scaledBoundingBox.height) / 2))),
-          taperDashAngle,
-          linesPaint,
-          dashWidth: (size.width > 1024 ? 10 : 5),
-          dashSpace: (size.width > 1024 ? 16 : 8),
-          maxLength: (size.width > 1024 ? 200 : 100),
-        );
-      }
-    }
-
-    //endregion
 
     //region DrawLines
     for (int i = 0; i < points.length - 1; i++) {
