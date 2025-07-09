@@ -879,8 +879,10 @@ class FlashingDetailsCustomPainter extends CustomPainter {
           size.width -
           tp.height -
           (size.width > 1024
-              ? (taperedState == 1 ? 40 : 85)
-              : (taperedState == 1 ? 30 : 65)); // place above lengths
+              ? (taperedState == 1 && tapered ? 40 : 85)
+              : (taperedState == 1 && tapered
+                  ? 30
+                  : 65)); // place above lengths
 
       tp.paint(canvas, Offset(marksPadding, marksDy));
     }
