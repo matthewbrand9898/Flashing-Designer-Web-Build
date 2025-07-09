@@ -442,7 +442,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                             color: Colors.white,
                             elevation: 8,
                             child: Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(8.0),
                               child: CustomPaint(
                                 size: const Size(1024, 1024),
                                 painter: FlashingDetailsCustomPainter(
@@ -650,15 +650,9 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     Paint linesPaint = Paint();
     linesPaint.style = PaintingStyle.stroke;
     linesPaint.color = Colors.grey.shade700;
-    linesPaint.strokeWidth = size.width > 1024 ? 3 : 1.5;
+    linesPaint.strokeWidth = size.width > 1024 ? 5 : 2.5;
     linesPaint.strokeCap = StrokeCap.round;
 
-    Paint boxPaint = Paint();
-    boxPaint.color = Colors.black;
-    boxPaint.strokeWidth = 4;
-    Paint pointsPaint = Paint();
-    pointsPaint.color = Colors.deepPurple;
-    pointsPaint.strokeWidth = 3.0;
     double containerScale = 20000 / size.width;
     double scale = 20000 / boundingBox.longestSide;
     Rect scaledBoundingBox = Rect.fromLTRB(
@@ -715,7 +709,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     }
 
 //region Top Row Info (scaled to fit)
-    final double baseFontSize = size.width > 1024 ? 36 : 18;
+    final double baseFontSize = size.width > 1024 ? 60 : 30;
     final double padding = size.width > 1024 ? 16 : 8;
     final double availableWidth = size.width - padding * 2;
 
@@ -728,7 +722,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     topRowParts.add(
         'Bends: ${(points.length - 2) + (cf1State.clamp(0, 1) + cf2State.clamp(0, 1))}');
     topRowParts.add('Material: $material');
-    topRowParts.add('(45° and 90° Hidden)');
+
     if (job.isNotEmpty) topRowParts.add('Job: $job');
     if (id.isNotEmpty) topRowParts.add('ID: $id');
 
@@ -772,7 +766,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
       final double maxWidth = size.width - lengthsPadding * 2;
 
 // start with your “ideal” size
-      double fontSize = size.width > 1024 ? 36 : 18;
+      double fontSize = size.width > 1024 ? 60 : 30;
 
 // helper to build & layout a TextPainter at a given fontSize
       TextPainter lengthsLayoutPainter(double fs) {
@@ -805,10 +799,10 @@ class FlashingDetailsCustomPainter extends CustomPainter {
 
 // now figure out your offset (right-aligned within padding)
       final lengthsDx = lengthsPadding;
-      final lengthsDy = lengthsPadding +
+      final lengthsDy = 0 +
           size.width -
           lengthsTextPainter.height -
-          (size.width > 1024 ? 50 : 25);
+          (size.width > 1024 ? 10 : 20);
 
 // paint
       lengthsTextPainter.paint(canvas, Offset(lengthsDx, lengthsDy));
@@ -826,7 +820,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
       final marksString = 'Marks: ${marks.join(', ')}';
 
       final double marksPadding = size.width > 1024 ? 16.0 : 8.0;
-      final double fontSize = size.width > 1024 ? 36 : 18;
+      final double fontSize = size.width > 1024 ? 60 : 30;
       final double maxWidth = size.width - marksPadding * 2;
 
       // Helper
@@ -859,7 +853,9 @@ class FlashingDetailsCustomPainter extends CustomPainter {
       final double marksDy = marksPadding +
           size.width -
           tp.height -
-          (size.width > 1024 ? 90 : 45); // place above lengths
+          (size.width > 1024
+              ? (taperedState == 1 ? 40 : 85)
+              : (taperedState == 1 ? 30 : 65)); // place above lengths
 
       tp.paint(canvas, Offset(marksPadding, marksDy));
     }
@@ -880,7 +876,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
         text: '${lengthWidgetText[i]}',
         style: TextStyle(
           color: Colors.black,
-          fontSize: size.width > 1024 ? 36 : 18,
+          fontSize: size.width > 1024 ? 50 : 25,
           fontWeight: FontWeight.bold,
         ),
       );
@@ -934,7 +930,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
             '${calculateAngle(points[i], points[i + 1], points[i + 2]).round()}°',
         style: TextStyle(
           color: Colors.black,
-          fontSize: size.width > 1024 ? 27 : 13.5,
+          fontSize: size.width > 1024 ? 45 : 22.5,
           fontWeight: FontWeight.bold,
         ),
       );
@@ -982,7 +978,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
         text: 'C',
         style: TextStyle(
             color: Colors.black,
-            fontSize: size.width > 1024 ? 36 : 18,
+            fontSize: size.width > 1024 ? 60 : 30,
             fontWeight: FontWeight.bold));
 
     final colourTextPainter = TextPainter(
