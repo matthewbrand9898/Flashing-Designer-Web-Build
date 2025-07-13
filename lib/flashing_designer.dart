@@ -1,12 +1,13 @@
-import 'package:ars_flashings/angle_widget.dart';
-import 'package:ars_flashings/cf1_widget.dart';
-import 'package:ars_flashings/colour_direction_widget.dart';
-import 'package:ars_flashings/edit_angle.dart';
-import 'package:ars_flashings/edit_cf.dart';
-import 'package:ars_flashings/edit_length.dart';
+import 'angle_widget.dart';
+import 'cf1_widget.dart';
+import 'colour_direction_widget.dart';
+import 'edit_angle.dart';
+import 'edit_cf.dart';
+import 'edit_length.dart';
 
-import 'package:ars_flashings/length_widget.dart';
-import 'package:ars_flashings/preview_3d.dart';
+import 'global_keys.dart';
+import 'length_widget.dart';
+import 'preview_3d.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 
@@ -22,22 +23,19 @@ import 'helper_functions.dart';
 import 'models/designer_model.dart';
 
 class FlashingDesigner extends StatelessWidget {
-  FlashingDesigner({super.key});
-  final GlobalKey<ConvexAppBarState> appBarKey = GlobalKey<ConvexAppBarState>();
+  const FlashingDesigner({super.key});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
         backgroundColor: Colors.grey.shade50,
-        resizeToAvoidBottomInset: false,
         floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
-              // Pop this route off the stack:
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const FlashingGridPage()),
               );
@@ -50,198 +48,15 @@ class FlashingDesigner extends StatelessWidget {
           ),
           centerTitle: true,
           actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                  foregroundColor: Colors.deepPurple.shade50),
-              onPressed: () async {
-                final designerModel =
-                    Provider.of<DesignerModel>(context, listen: false);
-                if (designerModel.points.length <= 1) return;
-
-                // 1. show the dialog and await back both material + lengths
-                final result = await showDialog<Map<String, String>>(
-                  context: context,
-                  builder: (context) {
-                    final materialController =
-                        TextEditingController(text: designerModel.material);
-                    final lengthsController =
-                        TextEditingController(text: designerModel.lengths);
-                    final jobController =
-                        TextEditingController(text: designerModel.job);
-                    final idController =
-                        TextEditingController(text: designerModel.id);
-
-                    return AlertDialog(
-                      // give the whole dialog rounded corners
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      clipBehavior:
-                          Clip.antiAlias, // ensure children respect the shape
-                      backgroundColor: Colors.white,
-                      insetPadding: const EdgeInsets.symmetric(horizontal: 40),
-
-                      // zero padding so our container fills the top edge
-                      titlePadding: EdgeInsets.zero,
-                      title: Container(
-                        // only round the top corners to match the dialog
-                        decoration: const BoxDecoration(
-                          color: Colors.deepPurple,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(16),
-                            topRight: Radius.circular(16),
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: const Center(
-                          child: Text(
-                            'ENTER DETAILS',
-                            style: TextStyle(
-                              fontFamily: 'Kanit',
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      content: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 300),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextField(
-                                controller: materialController,
-                                style: const TextStyle(
-                                  fontFamily: 'Kanit',
-                                  color: Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Material (Surfmist 0.55BMT CB)',
-                                  hintStyle:
-                                      const TextStyle(color: Colors.black54),
-                                  enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.black),
-                                  ),
-                                  focusedBorder: const UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.deepPurple),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              TextField(
-                                controller: lengthsController,
-                                keyboardType: TextInputType.multiline,
-                                maxLines: null,
-                                style: const TextStyle(
-                                  fontFamily: 'Kanit',
-                                  color: Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Lengths  (1@3000, 2@6000)',
-                                  hintStyle:
-                                      const TextStyle(color: Colors.black54),
-                                  enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.black),
-                                  ),
-                                  focusedBorder: const UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.deepPurple),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              TextField(
-                                controller: jobController,
-                                style: const TextStyle(
-                                  fontFamily: 'Kanit',
-                                  color: Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Job',
-                                  hintStyle:
-                                      const TextStyle(color: Colors.black54),
-                                  enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.black),
-                                  ),
-                                  focusedBorder: const UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.deepPurple),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              TextField(
-                                controller: idController,
-                                style: const TextStyle(
-                                  fontFamily: 'Kanit',
-                                  color: Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Flashing ID',
-                                  hintStyle:
-                                      const TextStyle(color: Colors.black54),
-                                  enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.black),
-                                  ),
-                                  focusedBorder: const UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.deepPurple),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                              fontFamily: 'Kanit',
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            if (materialController.text.trim().isNotEmpty &&
-                                lengthsController.text.trim().isNotEmpty) {
-                              Navigator.of(context).pop({
-                                'material': materialController.text.trim(),
-                                'lengths': lengthsController.text.trim(),
-                                'job': jobController.text.trim(),
-                                'id': idController.text.trim(),
-                              });
-                            }
-                          },
-                          child: const Text(
-                            'OK',
-                            style: TextStyle(
-                              fontFamily: 'Kanit',
-                              color: Colors.deepPurple,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                // 2. if they tapped OK and both fields have something, save them and navigate
-                if (result != null &&
-                    result['material']!.isNotEmpty &&
-                    result['lengths']!.isNotEmpty &&
-                    context.mounted) {
-                  designerModel.material = result['material']!;
-                  designerModel.lengths = result['lengths']!;
-                  designerModel.job = result['job']!;
-                  designerModel.id = result['id']!;
+            if (Provider.of<DesignerModel>(context, listen: false)
+                    .bottomBarIndex ==
+                1)
+              TextButton(
+                style: TextButton.styleFrom(
+                    foregroundColor: Colors.deepPurple.shade50),
+                onPressed: () async {
+                  final designerModel =
+                      Provider.of<DesignerModel>(context, listen: false);
 
                   Navigator.push(
                     context,
@@ -270,17 +85,16 @@ class FlashingDesigner extends StatelessWidget {
                         material: designerModel.material,
                         lengths: designerModel.lengths,
                         job: designerModel.job,
-                        id: designerModel.id,
+                        flashingID: designerModel.flashingID,
                       ),
                     ),
                   );
-                }
-              },
-              child: const Text(
-                "NEXT",
-                style: TextStyle(fontFamily: "Kanit", color: Colors.white),
+                },
+                child: const Text(
+                  "NEXT",
+                  style: TextStyle(fontFamily: "Kanit", color: Colors.white),
+                ),
               ),
-            ),
             const Padding(padding: EdgeInsets.only(right: 15)),
           ],
         ),
@@ -799,9 +613,7 @@ class FlashingDesigner extends StatelessWidget {
           ),
           if (Provider.of<DesignerModel>(context, listen: true).showLengthEdit)
             Positioned(
-              bottom: MediaQuery.of(context).viewInsets.bottom == 0
-                  ? MediaQuery.of(context).viewInsets.bottom
-                  : MediaQuery.of(context).viewInsets.bottom - 50,
+              bottom: 0,
               child: SizedBox(
                 width: constraints.maxWidth,
                 child: const EditLength(),
@@ -809,9 +621,7 @@ class FlashingDesigner extends StatelessWidget {
             ),
           if (Provider.of<DesignerModel>(context, listen: true).showCFEdit)
             Positioned(
-              bottom: MediaQuery.of(context).viewInsets.bottom == 0
-                  ? MediaQuery.of(context).viewInsets.bottom
-                  : MediaQuery.of(context).viewInsets.bottom - 50,
+              bottom: 0,
               child: SizedBox(
                 width: constraints.maxWidth,
                 child: const EditCFLength(),
@@ -819,9 +629,7 @@ class FlashingDesigner extends StatelessWidget {
             ),
           if (Provider.of<DesignerModel>(context, listen: true).showAngleEdit)
             Positioned(
-              bottom: MediaQuery.of(context).viewInsets.bottom == 0
-                  ? MediaQuery.of(context).viewInsets.bottom
-                  : MediaQuery.of(context).viewInsets.bottom - 50,
+              bottom: 0,
               child: SizedBox(
                 width: constraints.maxWidth,
                 child: const EditAngle(),

@@ -1,8 +1,8 @@
-import 'dart:convert';
+import 'dart:js_interop';
 import 'dart:math' as math;
 
 import 'dart:ui' as ui;
-import 'package:ars_flashings/pdf_manager.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -12,6 +12,7 @@ import 'package:web/web.dart' as web;
 import 'flashing_thumbnail_list.dart';
 import 'helper_functions.dart';
 import 'models/designer_model.dart';
+import 'order_storage.dart';
 
 class FlashingDetails extends StatefulWidget {
   const FlashingDetails(
@@ -34,7 +35,7 @@ class FlashingDetails extends StatefulWidget {
       required this.material,
       required this.lengths,
       required this.job,
-      required this.id,
+      required this.flashingID,
       super.key});
   final List<Offset> points;
   final List<Offset> anglePos;
@@ -55,7 +56,7 @@ class FlashingDetails extends StatefulWidget {
   final String material;
   final String lengths;
   final String job;
-  final String id;
+  final String flashingID;
 
   @override
   State<FlashingDetails> createState() => _RenderFlashingState();
@@ -82,25 +83,37 @@ Future<Uint8List> generateImageBytes(CustomPainter? painter, Size size) async {
   return pngBytes;
 }
 
-Future<void> downloadBytes(Uint8List bytes, String filename) async {
-  // 1) Base64-encode your PNG bytes
-  String? base64Data = base64Encode(bytes);
+/// Downloads [pngBytes] as a PNG file named [filename].
+void downloadPngAsFile(Uint8List pngBytes, String filename) {
+  // 1) Convert Dart ByteBuffer → JS ArrayBuffer
+  final arrayBuffer = pngBytes.buffer.toJS;
 
-  // 2) Build a data URI
-  String? uri = 'data:image/png;base64,$base64Data';
+  // 2) Put it into a JSArray<JSAny>
+  final parts = <JSAny>[arrayBuffer].toJS;
 
-  // 3) Anchor-click to download
-  web.HTMLAnchorElement? anchor = web.HTMLAnchorElement()
-    ..href = uri
-    ..download = filename;
+  // 3) Build a Blob with the PNG MIME type
+  final blob = web.Blob(
+    parts,
+    web.BlobPropertyBag(type: 'image/png'),
+  );
 
+  // 4) Create a temporary object URL
+  final url = web.URL.createObjectURL(blob);
+
+  // 5) Create and configure an <a> for download
+  final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
+  anchor.href = url;
+  anchor.download =
+      filename; // sets the default file name :contentReference[oaicite:0]{index=0}
+
+  // 6) Add to DOM, click, then clean up
   web.document.body?.append(anchor);
   anchor.click();
   anchor.remove();
-  web.URL.revokeObjectURL(uri);
-  anchor = null;
-  uri = null;
-  base64Data = null;
+
+  // 7) Release memory
+  web.URL.revokeObjectURL(
+      url); // free the blob URL :contentReference[oaicite:1]{index=1}
 }
 
 class _RenderFlashingState extends State<FlashingDetails> {
@@ -193,8 +206,6 @@ class _RenderFlashingState extends State<FlashingDetails> {
       floatingActionButton: ElevatedButton(
         style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
         onPressed: () async {
-          if (!kIsWeb) return;
-
           if (!widget.tapered) {
             Uint8List? bytes = await generateImageBytes(
                 FlashingDetailsCustomPainter(
@@ -217,11 +228,10 @@ class _RenderFlashingState extends State<FlashingDetails> {
                   material: widget.material,
                   lengths: widget.lengths,
                   job: widget.job,
-                  id: widget.id,
+                  flashingID: widget.flashingID,
                 ),
                 const Size(2048, 2048));
-            await downloadBytes(
-                bytes, 'Flashing${DateTime.timestamp().toLocal()}.png');
+            downloadPngAsFile(bytes, 'flashing.png');
             bytes = null;
           } else {
             FlashingDetailsCustomPainter? nearPainter =
@@ -245,7 +255,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
               material: widget.material,
               lengths: widget.lengths,
               job: widget.job,
-              id: widget.id,
+              flashingID: widget.flashingID,
             );
 
             FlashingDetailsCustomPainter? farPainter =
@@ -269,14 +279,13 @@ class _RenderFlashingState extends State<FlashingDetails> {
               material: widget.material,
               lengths: widget.lengths,
               job: widget.job,
-              id: widget.id,
+              flashingID: widget.flashingID,
             );
             _CombinedPainter? combined =
                 _CombinedPainter(near: nearPainter, far: farPainter);
             Uint8List? taperedBytes =
                 await generateImageBytes(combined, const Size(4096, 2048));
-            await downloadBytes(taperedBytes,
-                'TaperedFlashing${DateTime.timestamp().toLocal()}.png');
+            downloadPngAsFile(taperedBytes, 'tapered flashing.png');
             combined = null;
             taperedBytes = null;
             nearPainter = null;
@@ -315,8 +324,6 @@ class _RenderFlashingState extends State<FlashingDetails> {
               style: TextButton.styleFrom(
                   foregroundColor: Colors.deepPurple.shade50),
               onPressed: () async {
-                if (!kIsWeb) return;
-                PdfManager pdfManager = PdfManager();
                 if (!widget.tapered) {
                   Uint8List? bytes = await generateImageBytes(
                       FlashingDetailsCustomPainter(
@@ -339,10 +346,29 @@ class _RenderFlashingState extends State<FlashingDetails> {
                         material: widget.material,
                         lengths: widget.lengths,
                         job: widget.job,
-                        id: widget.id,
+                        flashingID: widget.flashingID,
                       ),
                       const Size(2048, 2048));
-                  pdfManager.addImage(bytes);
+
+                  if (context.mounted) {
+                    DesignerModel designerModel =
+                        Provider.of<DesignerModel>(context, listen: false);
+
+                    if (designerModel.isEditingFlashing) {
+                      designerModel.editFlashing(designerModel.saveFlashing(),
+                          designerModel.editFlashingID);
+                      designerModel
+                          .flashings[designerModel.editFlashingID].images
+                          .add(bytes);
+                      designerModel.isEditingFlashing = false;
+                    } else {
+                      designerModel.addFlashing(designerModel.saveFlashing());
+                      designerModel
+                          .flashings[designerModel.flashings.length - 1].images
+                          .add(bytes);
+                    }
+                  }
+
                   bytes = null;
                 } else {
                   FlashingDetailsCustomPainter? nearPainter =
@@ -366,7 +392,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                     material: widget.material,
                     lengths: widget.lengths,
                     job: widget.job,
-                    id: widget.id,
+                    flashingID: widget.flashingID,
                   );
 
                   FlashingDetailsCustomPainter? farPainter =
@@ -390,7 +416,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                     material: widget.material,
                     lengths: widget.lengths,
                     job: widget.job,
-                    id: widget.id,
+                    flashingID: widget.flashingID,
                   );
                   // _CombinedPainter? combined =
                   //    _CombinedPainter(near: nearPainter, far: farPainter);
@@ -398,13 +424,50 @@ class _RenderFlashingState extends State<FlashingDetails> {
                       nearPainter, const Size(2048, 2048));
                   Uint8List? farBytes = await generateImageBytes(
                       farPainter, const Size(2048, 2048));
-                  pdfManager.addTaperedImage(nearBytes);
-                  pdfManager.addTaperedImage(farBytes);
+
+                  if (context.mounted) {
+                    DesignerModel designerModel =
+                        Provider.of<DesignerModel>(context, listen: false);
+
+                    if (designerModel.isEditingFlashing) {
+                      designerModel.editFlashing(designerModel.saveFlashing(),
+                          designerModel.editFlashingID);
+                      designerModel
+                          .flashings[designerModel.editFlashingID].images
+                          .clear();
+                      designerModel
+                          .flashings[designerModel.editFlashingID].images
+                          .add(nearBytes);
+                      designerModel
+                          .flashings[designerModel.editFlashingID].images
+                          .add(farBytes);
+                      designerModel.isEditingFlashing = false;
+                    } else {
+                      designerModel.addFlashing(designerModel.saveFlashing());
+                      designerModel
+                          .flashings[designerModel.flashings.length - 1].images
+                          .add(nearBytes);
+                      designerModel
+                          .flashings[designerModel.flashings.length - 1].images
+                          .add(farBytes);
+                    }
+                  }
                   nearBytes = null;
                   farBytes = null;
                   nearPainter = null;
                   farPainter = null;
                 }
+                if (!context.mounted) return;
+                DesignerModel designerModel =
+                    Provider.of<DesignerModel>(context, listen: false);
+
+                final orders = await OrderStorage.readOrders();
+                final idx = designerModel.currentOrderIndex!;
+                orders[idx].flashings
+                  ..clear()
+                  ..addAll(designerModel.flashings);
+
+                await OrderStorage.writeOrders(orders);
                 if (!context.mounted) return;
                 Navigator.pushReplacement(
                     context,
@@ -467,7 +530,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                                   material: widget.material,
                                   lengths: widget.lengths,
                                   job: widget.job,
-                                  id: widget.id,
+                                  flashingID: widget.flashingID,
                                 ),
                               ),
                             ),
@@ -509,7 +572,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                                   material: widget.material,
                                   lengths: widget.lengths,
                                   job: widget.job,
-                                  id: widget.id,
+                                  flashingID: widget.flashingID,
                                 ),
                               ),
                             ),
@@ -551,7 +614,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                                   material: widget.material,
                                   lengths: widget.lengths,
                                   job: widget.job,
-                                  id: widget.id,
+                                  flashingID: widget.flashingID,
                                 ),
                               ),
                             ),
@@ -590,7 +653,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     required this.material,
     required this.lengths,
     required this.job,
-    required this.id,
+    required this.flashingID,
   });
   final int girth;
   final Rect boundingBox;
@@ -611,7 +674,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
   final String material;
   final String lengths;
   final String job;
-  final String id;
+  final String flashingID;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -642,6 +705,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     }
 
     //region variables
+
     final backgroundPaint = Paint()
       ..color = Colors.white; // change to desired color
     canvas.drawRect(
@@ -714,17 +778,16 @@ class FlashingDetailsCustomPainter extends CustomPainter {
     final double availableWidth = size.width - padding * 2;
 
     List<String> topRowParts = [];
-
+    topRowParts.add(' $material');
     topRowParts.add('Girth: ${girth}mm');
     if (tapered) {
-      topRowParts.add('Taper: ${taperedState == 0 ? 'Near' : 'Far'}');
+      topRowParts.add(' ${taperedState == 0 ? 'Near' : 'Far'}');
     }
     topRowParts.add(
         'Bends: ${(points.length - 2) + (cf1State.clamp(0, 1) + cf2State.clamp(0, 1))}');
-    topRowParts.add('Material: $material');
 
     if (job.isNotEmpty) topRowParts.add('Job: $job');
-    if (id.isNotEmpty) topRowParts.add('ID: $id');
+    if (flashingID.isNotEmpty) topRowParts.add('ID: $flashingID');
 
     final String combinedText = topRowParts.join(' • ');
 

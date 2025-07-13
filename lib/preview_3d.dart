@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:three_js/three_js.dart' as three;
 import 'package:three_js_text/three_js_text.dart';
 import 'package:three_js_controls/three_js_controls.dart';
-import 'package:web/web.dart' as web;
 
 class CubeOrbitPage extends StatefulWidget {
   const CubeOrbitPage(
@@ -100,8 +99,6 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
 
   @override
   void initState() {
-    super.initState();
-
     // Create the ThreeJS renderer + widget
     threeJs = three.ThreeJS(
       onSetupComplete: () {
@@ -110,6 +107,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
       },
       setup: _setupScene,
       settings: three.Settings(
+        useOpenGL: true,
         enableShadowMap: false,
         // optional: tweak antialias, pixel ratio, etc.
         renderOptions: {
@@ -117,6 +115,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
         },
       ),
     );
+    super.initState();
   }
 
   void _setupScene() async {
@@ -229,7 +228,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
     final edgesGeom = three.EdgesGeometry(merged, 10);
     final edgeMat = three.LineBasicMaterial.fromMap({
       'color': 0x000000,
-      'linewidth': 3 / web.window.devicePixelRatio,
+      'linewidth': 1,
     });
     threeJs.scene.add(three.LineSegments(edgesGeom, edgeMat));
 
@@ -280,10 +279,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
           )),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          return SizedBox(
-              width: constraints.maxWidth,
-              height: constraints.maxHeight,
-              child: threeJs.build());
+          return threeJs.build();
         },
       ),
     );
@@ -292,8 +288,11 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
   @override
   void dispose() {
     // Clean up both renderer and controls
-    controls.dispose();
-    threeJs.dispose();
+
+    try {
+      controls.dispose();
+      threeJs.dispose();
+    } catch (e) {}
     super.dispose();
   }
 }

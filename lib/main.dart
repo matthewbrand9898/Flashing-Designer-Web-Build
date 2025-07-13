@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart';
+import 'package:flashing_designer/order_page.dart';
 import 'package:provider/provider.dart';
-import 'package:web/web.dart' as web;
 
-import 'flashing_thumbnail_list.dart';
 import 'models/designer_model.dart';
 import 'package:flutter/material.dart';
 
@@ -20,17 +18,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if it's an installed PWA on web
-    final isPwa =
-        kIsWeb && web.window.matchMedia('(display-mode: standalone)').matches;
-    // Check if it's running in a web iOS browser
-    final isWebiOS = kIsWeb &&
-        web.window.navigator.userAgent.contains(
-          RegExp(r'iPad|iPod|iPhone'),
-        );
-
-    // The main MaterialApp
-    final app = MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'FLASHING DESIGNER',
       theme: ThemeData(
@@ -42,22 +30,9 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.compact,
         useMaterial3: true,
       ),
-      home: const FlashingGridPage(),
+      home: const OrdersPage(),
     );
 
     // Wrap with a deep purple background and add bottom inset container
-    return Container(
-      color: Colors.deepPurple,
-      child: Column(
-        children: [
-          Expanded(child: app),
-          if (isPwa && isWebiOS)
-            Container(
-              height: 50,
-              color: Colors.deepPurple,
-            ),
-        ],
-      ),
-    );
   }
 }

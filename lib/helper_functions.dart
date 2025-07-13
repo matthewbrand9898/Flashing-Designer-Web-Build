@@ -1,5 +1,8 @@
 import 'dart:math';
+import 'dart:math' as math;
 import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
 
 Offset calculateMidpoint(Offset pointA, Offset pointB) {
   return Offset(
@@ -368,6 +371,52 @@ Offset cf2Offset(List<Offset> points, Offset cf_2Position,
                           cf2midpoint, cf_2Position + cf_2Scaler)
                       .dy)) -
           cf_2Scaler.dy);
+}
+
+void centerOnBoundingBox({
+  required TransformationController controller,
+  required List<Offset> points,
+  required Size viewportSize,
+  double? minScale, // optional clamp
+  double? maxScale, // optional clamp
+  double marginFactor = 0.9, // leave 10% padding around
+}) {
+  if (points.isEmpty) return;
+
+  // 1️⃣ bounding box
+  final minX = points.map((p) => p.dx).reduce(math.min);
+  final maxX = points.map((p) => p.dx).reduce(math.max);
+  final minY = points.map((p) => p.dy).reduce(math.min);
+  final maxY = points.map((p) => p.dy).reduce(math.max);
+
+  final boxW = maxX - minX;
+  final boxH = maxY - minY;
+  final boxCenterX = (minX + maxX) / 2;
+  final boxCenterY = (minY + maxY) / 2;
+
+  // 2️⃣ compute fit scale
+  var fitScale = math.min(
+    viewportSize.width / (boxW == 0 ? viewportSize.width : boxW),
+    viewportSize.height / (boxH == 0 ? viewportSize.height : boxH),
+  );
+
+  // apply margin so it’s not edge-to-edge
+  fitScale *= marginFactor;
+
+  // 3️⃣ clamp if needed
+  if (minScale != null) fitScale = math.max(fitScale, minScale);
+  if (maxScale != null) fitScale = math.min(fitScale, maxScale);
+
+  // 4️⃣ build the centered matrix
+  final m = Matrix4.identity()
+    // move box center → screen center
+    ..translate(viewportSize.width / 2, viewportSize.height / 2)
+    // scale
+    ..scale(fitScale)
+    // move the box center to origin before scaling
+    ..translate(-boxCenterX, -boxCenterY);
+
+  controller.value = m;
 }
 
 Rect calculateBoundingBoxWithUi(

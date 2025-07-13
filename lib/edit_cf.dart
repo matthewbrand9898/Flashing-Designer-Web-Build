@@ -1,8 +1,8 @@
-import 'package:ars_flashings/helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'helper_functions.dart';
 import 'models/designer_model.dart';
 
 class EditCFLength extends StatelessWidget {

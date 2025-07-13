@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../helper_functions.dart';
+import 'flashing.dart';
 
 class DesignerModel extends ChangeNotifier {
   final TransformationController _transformationController;
@@ -12,6 +13,7 @@ class DesignerModel extends ChangeNotifier {
     // The transformation controller is initialized with the given translation values
   }
   // private declaration
+  final List<Flashing> _flashings = [];
   List<Offset> _points = <Offset>[];
   List<Offset> _lengthPositions = <Offset>[];
   List<int> _lengthWidgetText = <int>[];
@@ -36,6 +38,15 @@ class DesignerModel extends ChangeNotifier {
   final List<double> _angleScales = <double>[];
   final List<double> _lengthScales = <double>[];
 
+  int? currentOrderIndex;
+  String? currentOrderName;
+  DateTime? currentOrderDate;
+  String? currentCustomerName;
+  String? currentCustomerAddress;
+  String? currentCustomerPhone;
+  String? currentCustomerEmail;
+
+  int _editFlashingID = 0;
   int _cf_1State = 0;
   int _cf_2State = 0;
   double _cf_1Scale = 1;
@@ -53,7 +64,7 @@ class DesignerModel extends ChangeNotifier {
   int _girth = 0;
 
   bool _tapered = false;
-
+  bool _isEditingFlashing = false;
   bool _showCrushAndFoldUI = false;
   bool _showLengthEdit = false;
   bool _showAngleEdit = false;
@@ -81,10 +92,11 @@ class DesignerModel extends ChangeNotifier {
   String _material = '';
   String _Lengths = '';
   String _Job = '';
-  String _Id = '';
+  String _flashingID = '';
 
   //getters
   List<Offset> get points => _points;
+  List<Flashing> get flashings => _flashings;
   List<Offset> get lengthPositions => _lengthPositions;
   List<int> get lengthWidgetText => _lengthWidgetText;
   List<int> get nearLengthWidgetText => _nearLengthWidgetText;
@@ -112,6 +124,18 @@ class DesignerModel extends ChangeNotifier {
 
   bool get tapered => _tapered;
   int get taperedState => _taperedState;
+
+  bool get isEditingFlashing => _isEditingFlashing;
+  set isEditingFlashing(bool v) {
+    _isEditingFlashing = v;
+    notifyListeners();
+  }
+
+  int get editFlashingID => _editFlashingID;
+  set editFlashingID(int v) {
+    _editFlashingID = v;
+    notifyListeners();
+  }
 
   int get cf_1State => _cf_1State;
   int get cf_2State => _cf_2State;
@@ -177,14 +201,387 @@ class DesignerModel extends ChangeNotifier {
     }
   }
 
-  String get id => _Id;
-  set id(String v) {
-    if (v != _Id) {
-      _Id = v;
+  String get flashingID => _flashingID;
+  set flashingID(String v) {
+    if (v != _flashingID) {
+      _flashingID = v;
       notifyListeners();
     }
   }
+
   //Setters
+  /// Reset every field back to its default, empty or zero state.
+  void clearAll() {
+    // geometry
+    _points.clear();
+    _lengthPositions.clear();
+    _lengthWidgetText.clear();
+    _nearLengthWidgetText.clear();
+    _farLengthWidgetText.clear();
+    _lengthPositions_Offsets.clear();
+    _anglePositions.clear();
+    _anglePositions_Offsets.clear();
+
+    // near side
+    _nearPoints.clear();
+    _nearLengthPositions.clear();
+    _nearLengthPositions_Offsets.clear();
+    _nearAnglePositions.clear();
+    _nearAnglePositions_Offsets.clear();
+
+    // far side
+    _farPoints.clear();
+    _farLengthPositions.clear();
+    _farLengthPositions_Offsets.clear();
+    _farAnglePositions.clear();
+    _farAnglePositions_Offsets.clear();
+
+    // scales
+    _angleScales.clear();
+    _lengthScales.clear();
+
+    // crush & fold
+    _cf_1State = 0;
+    _cf_2State = 0;
+    _cf_1Scale = 1;
+    _cf_2Scale = 1;
+    _cf_1Length = 0;
+    _cf_2Length = 0;
+    _cf_1Position = Offset.zero;
+    _cf_2Position = Offset.zero;
+    _cf_2PositionNear = Offset.zero;
+    _cf_2PositionFar = Offset.zero;
+
+    // colour
+    _colourPosition = Offset.zero;
+    _colourMidpoint = Offset.zero;
+    _colourRotation = 0;
+
+    // other flags
+    _girth = 0;
+    _tapered = false;
+    _showCrushAndFoldUI = false;
+    _showLengthEdit = false;
+    _showAngleEdit = false;
+    _showCFEdit = false;
+    _ShowMenu = false;
+    _Hide90_45Angles = false;
+    _isEditingFlashing = false;
+
+    // bottom bar
+    _bottomBarIndex = 0;
+    _bottomBarColors
+      ..clear()
+      ..addAll([Colors.white, Colors.grey, Colors.grey]);
+
+    // interaction
+    _oldInteractiveZoomFactor = null;
+    _interactiveZoomFactor = 1;
+
+    // selection
+    _taperedState = 0;
+    _SelectedPointindex = 1;
+    _dragLengthIndex = 0;
+    _dragAngleIndex = 0;
+    _selectedCF = 0;
+    _SelectedRotationPoint = 0;
+    _colourSide = 1;
+
+    // metadata
+    _material = '';
+    _Lengths = '';
+    _Job = '';
+    _flashingID = '';
+    _transformationController.value =
+        Matrix4.translationValues(-10000, -10000, 0.0);
+
+    notifyListeners();
+  }
+
+  void _recalculateAllOffsets() {
+    // 1) update the model's zoom factor
+    final newScale = _transformationController.value.getMaxScaleOnAxis();
+    editInteractiveZoomFactor(newScale);
+    editOldInteractiveZoomFactor(newScale);
+
+    // 2) length offsets
+    for (var i = 0; i < _lengthPositions.length; i++) {
+      editLengthPositionOffset(
+        i,
+        lengthOffset(
+          _points,
+          _lengthPositions,
+          _interactiveZoomFactor,
+          i + 1,
+          i,
+          _lengthScales[i],
+        ),
+      );
+    }
+
+    // 3) near‐length offsets
+    for (var i = 0; i < _nearLengthPositions.length; i++) {
+      editNearLengthPositionOffset(
+        i,
+        lengthOffset(
+          _nearPoints,
+          _nearLengthPositions,
+          _interactiveZoomFactor,
+          i + 1,
+          i,
+          _lengthScales[i],
+        ),
+      );
+    }
+
+    // 4) far‐length offsets
+    for (var i = 0; i < _farLengthPositions.length; i++) {
+      editFarLengthPositionOffset(
+        i,
+        lengthOffset(
+          _farPoints,
+          _farLengthPositions,
+          _interactiveZoomFactor,
+          i + 1,
+          i,
+          _lengthScales[i],
+        ),
+      );
+    }
+
+    // 5) angle offsets
+    for (var i = 0; i < _anglePositions.length; i++) {
+      editAnglePositionOffset(
+        i,
+        angleOffset(
+          _points,
+          _anglePositions,
+          _interactiveZoomFactor,
+          i + 1,
+          i,
+        ),
+      );
+    }
+
+    // 6) near‐angle offsets
+    for (var i = 0; i < _nearAnglePositions.length; i++) {
+      editNearAnglePositionOffset(
+        i,
+        angleOffset(
+          _nearPoints,
+          _nearAnglePositions,
+          _interactiveZoomFactor,
+          i + 1,
+          i,
+        ),
+      );
+    }
+
+    // 7) far‐angle offsets
+    for (var i = 0; i < _farAnglePositions.length; i++) {
+      editFarAnglePositionOffset(
+        i,
+        angleOffset(
+          _farPoints,
+          _farAnglePositions,
+          _interactiveZoomFactor,
+          i + 1,
+          i,
+        ),
+      );
+    }
+
+    // 8) finally notify once so your UI rebuilds
+    notifyListeners();
+  }
+
+  void resetTransformController(Size viewSize) {
+    centerOnBoundingBox(
+        controller: _transformationController,
+        points: points,
+        viewportSize: viewSize,
+        marginFactor: 0.5);
+
+    _recalculateAllOffsets();
+    notifyListeners();
+  }
+
+  void setFlashings(
+    List<Flashing> flashings, {
+    int? orderIndex,
+    String? orderName,
+    DateTime? orderDate,
+    String? customerName,
+    String? customerAddress,
+    String? customerPhone,
+    String? customerEmail,
+  }) {
+    _flashings
+      ..clear()
+      ..addAll(flashings);
+    currentOrderIndex = orderIndex;
+    currentOrderName = orderName;
+    currentOrderDate = orderDate;
+    currentCustomerName = customerName;
+    currentCustomerAddress = customerAddress;
+    currentCustomerPhone = customerPhone;
+    currentCustomerEmail = customerEmail;
+    notifyListeners();
+  }
+
+  /// Copy *all* fields from this model back into [f]:
+  Flashing saveFlashing() {
+    Flashing f = Flashing();
+    f.id = _flashings.length;
+    f.points = List.from(_points);
+    f.lengthPositions = List.from(_lengthPositions);
+    f.lengthWidgetText = List.from(_lengthWidgetText);
+    f.nearLengthWidgetText = List.from(_nearLengthWidgetText);
+    f.farLengthWidgetText = List.from(_farLengthWidgetText);
+    f.lengthPositionsOffsets = List.from(_lengthPositions_Offsets);
+    f.anglePositions = List.from(_anglePositions);
+    f.anglePositionsOffsets = List.from(_anglePositions_Offsets);
+
+    f.nearPoints = List.from(_nearPoints);
+    f.nearLengthPositions = List.from(_nearLengthPositions);
+    f.nearLengthPositionsOffsets = List.from(_nearLengthPositions_Offsets);
+    f.nearAnglePositions = List.from(_nearAnglePositions);
+    f.nearAnglePositionsOffsets = List.from(_nearAnglePositions_Offsets);
+
+    f.farPoints = List.from(_farPoints);
+    f.farLengthPositions = List.from(_farLengthPositions);
+    f.farLengthPositionsOffsets = List.from(_farLengthPositions_Offsets);
+    f.farAnglePositions = List.from(_farAnglePositions);
+    f.farAnglePositionsOffsets = List.from(_farAnglePositions_Offsets);
+
+    f.angleScales = List.from(_angleScales);
+    f.lengthScales = List.from(_lengthScales);
+
+    f.cf1State = _cf_1State;
+    f.cf2State = _cf_2State;
+    f.cf1Scale = _cf_1Scale;
+    f.cf2Scale = _cf_2Scale;
+    f.cf1Length = _cf_1Length;
+    f.cf2Length = _cf_2Length;
+    f.cf1Position = _cf_1Position;
+    f.cf2Position = _cf_2Position;
+    f.cf2PositionNear = _cf_2PositionNear;
+    f.cf2PositionFar = _cf_2PositionFar;
+
+    f.colourPosition = _colourPosition;
+    f.colourMidpoint = _colourMidpoint;
+    f.colourRotation = _colourRotation;
+
+    f.girth = _girth;
+    f.tapered = _tapered;
+
+    f.showCrushAndFoldUI = _showCrushAndFoldUI;
+    f.showLengthEdit = _showLengthEdit;
+    f.showAngleEdit = _showAngleEdit;
+    f.showCFEdit = _showCFEdit;
+    f.showMenu = _ShowMenu;
+    f.hide9045Angles = _Hide90_45Angles;
+
+    f.bottomBarColors = List.from(bottomBarColors);
+    f.bottomBarIndex = _bottomBarIndex;
+
+    f.oldInteractiveZoomFactor = _oldInteractiveZoomFactor;
+    f.interactiveZoomFactor = _interactiveZoomFactor;
+
+    f.taperedState = _taperedState;
+    f.selectedPointIndex = _SelectedPointindex;
+    f.dragLengthIndex = _dragLengthIndex;
+    f.dragAngleIndex = _dragAngleIndex;
+    f.selectedCF = _selectedCF;
+    f.selectedRotationPoint = _SelectedRotationPoint;
+    f.colourSide = _colourSide;
+
+    f.material = _material;
+    f.Lengths = _Lengths;
+    f.Job = _Job;
+    f.flashingId = _flashingID;
+
+    return f;
+  }
+
+  /// Copy *all* fields from [f] into this model:
+  void loadFlashing(Flashing f) {
+    _points = List.from(f.points);
+    _lengthPositions = List.from(f.lengthPositions);
+    _lengthWidgetText = List.from(f.lengthWidgetText);
+    _nearLengthWidgetText = List.from(f.nearLengthWidgetText);
+    _farLengthWidgetText = List.from(f.farLengthWidgetText);
+    _lengthPositions_Offsets = List.from(f.lengthPositionsOffsets);
+    _anglePositions = List.from(f.anglePositions);
+    _anglePositions_Offsets = List.from(f.anglePositionsOffsets);
+
+    _nearPoints = List.from(f.nearPoints);
+    _nearLengthPositions = List.from(f.nearLengthPositions);
+    _nearLengthPositions_Offsets = List.from(f.nearLengthPositionsOffsets);
+    _nearAnglePositions = List.from(f.nearAnglePositions);
+    _nearAnglePositions_Offsets = List.from(f.nearAnglePositionsOffsets);
+
+    _farPoints = List.from(f.farPoints);
+    _farLengthPositions = List.from(f.farLengthPositions);
+    _farLengthPositions_Offsets = List.from(f.farLengthPositionsOffsets);
+    _farAnglePositions = List.from(f.farAnglePositions);
+    _farAnglePositions_Offsets = List.from(f.farAnglePositionsOffsets);
+
+    _angleScales
+      ..clear()
+      ..addAll(f.angleScales);
+    _lengthScales
+      ..clear()
+      ..addAll(f.lengthScales);
+
+    _cf_1State = f.cf1State;
+    _cf_2State = f.cf2State;
+    _cf_1Scale = f.cf1Scale;
+    _cf_2Scale = f.cf2Scale;
+    _cf_1Length = f.cf1Length;
+    _cf_2Length = f.cf2Length;
+    _cf_1Position = f.cf1Position;
+    _cf_2Position = f.cf2Position;
+    _cf_2PositionNear = f.cf2PositionNear;
+    _cf_2PositionFar = f.cf2PositionFar;
+
+    _colourPosition = f.colourPosition;
+    _colourMidpoint = f.colourMidpoint;
+    _colourRotation = f.colourRotation;
+
+    _girth = f.girth;
+    _tapered = f.tapered;
+
+    _showCrushAndFoldUI = f.showCrushAndFoldUI;
+    _showLengthEdit = f.showLengthEdit;
+    _showAngleEdit = f.showAngleEdit;
+    _showCFEdit = f.showCFEdit;
+
+    _Hide90_45Angles = f.hide9045Angles;
+
+    bottomBarColors
+      ..clear()
+      ..addAll(f.bottomBarColors);
+    _bottomBarIndex = f.bottomBarIndex;
+
+    _oldInteractiveZoomFactor = f.oldInteractiveZoomFactor;
+    _interactiveZoomFactor = f.interactiveZoomFactor;
+    _ShowMenu = f.showMenu;
+    _taperedState = f.taperedState;
+    _SelectedPointindex = f.selectedPointIndex;
+    _dragLengthIndex = f.dragLengthIndex;
+    _dragAngleIndex = f.dragAngleIndex;
+    _selectedCF = f.selectedCF;
+    _SelectedRotationPoint = f.selectedRotationPoint;
+    _colourSide = f.colourSide;
+
+    _material = f.material;
+    _Lengths = f.Lengths;
+    _Job = f.Job;
+    _flashingID = f.flashingId;
+
+    notifyListeners();
+  }
 
   void enableTaper() {
     _tapered = true;
@@ -301,6 +698,18 @@ class DesignerModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addFlashing(Flashing flashing) {
+    _flashings.add(flashing);
+  }
+
+  void editFlashing(Flashing flashing, int index) {
+    _flashings[index] = flashing;
+  }
+
+  void removeFlashing(int index) {
+    _flashings.removeAt(index);
+  }
+
   void editPoint(int index, Offset newValue) {
     if (_points.length > index) _points[index] = newValue;
     UpdateGirth();
@@ -317,7 +726,6 @@ class DesignerModel extends ChangeNotifier {
   void removeNearPoint() {
     if (_nearPoints.isNotEmpty) {
       _nearPoints.removeLast();
-
       if (_nearLengthWidgetText.isNotEmpty) {
         _nearLengthWidgetText.removeLast();
       }
@@ -625,7 +1033,10 @@ class DesignerModel extends ChangeNotifier {
 
   void editBottomBarIndex(int val) {
     _bottomBarIndex = val;
-    disableTaper();
+    if (val != 1) {
+      disableTaper();
+    }
+
     notifyListeners();
   }
 

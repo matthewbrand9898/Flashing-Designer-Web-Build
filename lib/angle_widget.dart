@@ -1,8 +1,8 @@
-import 'package:ars_flashings/models/designer_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'helper_functions.dart';
+import 'models/designer_model.dart';
 
 class AngleWidget extends StatelessWidget {
   const AngleWidget({required this.index, super.key});
