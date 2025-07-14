@@ -143,6 +143,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
   Offset farColourMidPoint = Offset.zero;
   bool farTapered = false;
   int farTaperedState = 1;
+  bool _isRunning = false;
 
   @override
   void initState() {
@@ -324,156 +325,167 @@ class _RenderFlashingState extends State<FlashingDetails> {
               style: TextButton.styleFrom(
                   foregroundColor: Colors.deepPurple.shade50),
               onPressed: () async {
-                if (!widget.tapered) {
-                  Uint8List? bytes = await generateImageBytes(
-                      FlashingDetailsCustomPainter(
-                        points: widget.points,
-                        boundingBox: widget.boundingBox,
-                        lengthWidgetPositions: widget.lengthPos,
-                        lengthWidgetPositionOffsets: widget.lengthPosOffsets,
-                        angleWidgetPositions: widget.anglePos,
-                        anlgeWidgetPositionOffsets: widget.anglePosOffsets,
-                        girth: widget.girth,
-                        lengthWidgetText: widget.lengthWidgetText,
-                        colourPosition: widget.colourPosition,
-                        colourMidPoint: widget.colourMidPoint,
-                        tapered: widget.tapered,
-                        taperedState: widget.taperedState,
-                        cf1State: widget.cf1State,
-                        cf2State: widget.cf2State,
-                        cf1Length: widget.cf1Length,
-                        cf2Length: widget.cf2Length,
-                        material: widget.material,
-                        lengths: widget.lengths,
-                        job: widget.job,
-                        flashingID: widget.flashingID,
-                      ),
-                      const Size(2048, 2048));
+                if (_isRunning) return;
 
-                  if (context.mounted) {
-                    DesignerModel designerModel =
-                        Provider.of<DesignerModel>(context, listen: false);
+                _isRunning = true;
 
-                    if (designerModel.isEditingFlashing) {
-                      designerModel.editFlashing(designerModel.saveFlashing(),
-                          designerModel.editFlashingID);
-                      designerModel
-                          .flashings[designerModel.editFlashingID].images
-                          .add(bytes);
-                      designerModel.isEditingFlashing = false;
-                    } else {
-                      designerModel.addFlashing(designerModel.saveFlashing());
-                      designerModel
-                          .flashings[designerModel.flashings.length - 1].images
-                          .add(bytes);
+                try {
+                  if (!widget.tapered) {
+                    Uint8List? bytes = await generateImageBytes(
+                        FlashingDetailsCustomPainter(
+                          points: widget.points,
+                          boundingBox: widget.boundingBox,
+                          lengthWidgetPositions: widget.lengthPos,
+                          lengthWidgetPositionOffsets: widget.lengthPosOffsets,
+                          angleWidgetPositions: widget.anglePos,
+                          anlgeWidgetPositionOffsets: widget.anglePosOffsets,
+                          girth: widget.girth,
+                          lengthWidgetText: widget.lengthWidgetText,
+                          colourPosition: widget.colourPosition,
+                          colourMidPoint: widget.colourMidPoint,
+                          tapered: widget.tapered,
+                          taperedState: widget.taperedState,
+                          cf1State: widget.cf1State,
+                          cf2State: widget.cf2State,
+                          cf1Length: widget.cf1Length,
+                          cf2Length: widget.cf2Length,
+                          material: widget.material,
+                          lengths: widget.lengths,
+                          job: widget.job,
+                          flashingID: widget.flashingID,
+                        ),
+                        const Size(2048, 2048));
+
+                    if (context.mounted) {
+                      DesignerModel designerModel =
+                          Provider.of<DesignerModel>(context, listen: false);
+
+                      if (designerModel.isEditingFlashing) {
+                        designerModel.editFlashing(designerModel.saveFlashing(),
+                            designerModel.editFlashingID);
+                        designerModel
+                            .flashings[designerModel.editFlashingID].images
+                            .add(bytes);
+                        designerModel.isEditingFlashing = false;
+                      } else {
+                        designerModel.addFlashing(designerModel.saveFlashing());
+                        designerModel
+                            .flashings[designerModel.flashings.length - 1]
+                            .images
+                            .add(bytes);
+                      }
                     }
-                  }
 
-                  bytes = null;
-                } else {
-                  FlashingDetailsCustomPainter? nearPainter =
-                      FlashingDetailsCustomPainter(
-                    girth: nearGirth,
-                    points: nearPoints,
-                    boundingBox: nearBoundingBox,
-                    lengthWidgetPositions: nearLengthPositions,
-                    lengthWidgetPositionOffsets: nearLengthPositionOffsets,
-                    angleWidgetPositions: nearAnglePositions,
-                    anlgeWidgetPositionOffsets: nearAnglePositionOffsets,
-                    lengthWidgetText: nearLengthWidgetText,
-                    colourPosition: nearColourPosition,
-                    colourMidPoint: nearColourMidPoint,
-                    tapered: nearTapered,
-                    taperedState: nearTaperedState,
-                    cf1State: widget.cf1State,
-                    cf2State: widget.cf2State,
-                    cf1Length: widget.cf1Length,
-                    cf2Length: widget.cf2Length,
-                    material: widget.material,
-                    lengths: widget.lengths,
-                    job: widget.job,
-                    flashingID: widget.flashingID,
-                  );
+                    bytes = null;
+                  } else {
+                    FlashingDetailsCustomPainter? nearPainter =
+                        FlashingDetailsCustomPainter(
+                      girth: nearGirth,
+                      points: nearPoints,
+                      boundingBox: nearBoundingBox,
+                      lengthWidgetPositions: nearLengthPositions,
+                      lengthWidgetPositionOffsets: nearLengthPositionOffsets,
+                      angleWidgetPositions: nearAnglePositions,
+                      anlgeWidgetPositionOffsets: nearAnglePositionOffsets,
+                      lengthWidgetText: nearLengthWidgetText,
+                      colourPosition: nearColourPosition,
+                      colourMidPoint: nearColourMidPoint,
+                      tapered: nearTapered,
+                      taperedState: nearTaperedState,
+                      cf1State: widget.cf1State,
+                      cf2State: widget.cf2State,
+                      cf1Length: widget.cf1Length,
+                      cf2Length: widget.cf2Length,
+                      material: widget.material,
+                      lengths: widget.lengths,
+                      job: widget.job,
+                      flashingID: widget.flashingID,
+                    );
 
-                  FlashingDetailsCustomPainter? farPainter =
-                      FlashingDetailsCustomPainter(
-                    girth: farGirth,
-                    points: farPoints,
-                    boundingBox: farBoundingBox,
-                    lengthWidgetPositions: farLengthPositions,
-                    lengthWidgetPositionOffsets: farLengthPositionOffsets,
-                    angleWidgetPositions: farAnglePositions,
-                    anlgeWidgetPositionOffsets: farAnglePositionOffsets,
-                    lengthWidgetText: farLengthWidgetText,
-                    colourPosition: farColourPosition,
-                    colourMidPoint: farColourMidPoint,
-                    tapered: farTapered,
-                    taperedState: farTaperedState,
-                    cf1State: widget.cf1State,
-                    cf2State: widget.cf2State,
-                    cf1Length: widget.cf1Length,
-                    cf2Length: widget.cf2Length,
-                    material: widget.material,
-                    lengths: widget.lengths,
-                    job: widget.job,
-                    flashingID: widget.flashingID,
-                  );
-                  // _CombinedPainter? combined =
-                  //    _CombinedPainter(near: nearPainter, far: farPainter);
-                  Uint8List? nearBytes = await generateImageBytes(
-                      nearPainter, const Size(2048, 2048));
-                  Uint8List? farBytes = await generateImageBytes(
-                      farPainter, const Size(2048, 2048));
+                    FlashingDetailsCustomPainter? farPainter =
+                        FlashingDetailsCustomPainter(
+                      girth: farGirth,
+                      points: farPoints,
+                      boundingBox: farBoundingBox,
+                      lengthWidgetPositions: farLengthPositions,
+                      lengthWidgetPositionOffsets: farLengthPositionOffsets,
+                      angleWidgetPositions: farAnglePositions,
+                      anlgeWidgetPositionOffsets: farAnglePositionOffsets,
+                      lengthWidgetText: farLengthWidgetText,
+                      colourPosition: farColourPosition,
+                      colourMidPoint: farColourMidPoint,
+                      tapered: farTapered,
+                      taperedState: farTaperedState,
+                      cf1State: widget.cf1State,
+                      cf2State: widget.cf2State,
+                      cf1Length: widget.cf1Length,
+                      cf2Length: widget.cf2Length,
+                      material: widget.material,
+                      lengths: widget.lengths,
+                      job: widget.job,
+                      flashingID: widget.flashingID,
+                    );
+                    // _CombinedPainter? combined =
+                    //    _CombinedPainter(near: nearPainter, far: farPainter);
+                    Uint8List? nearBytes = await generateImageBytes(
+                        nearPainter, const Size(2048, 2048));
+                    Uint8List? farBytes = await generateImageBytes(
+                        farPainter, const Size(2048, 2048));
 
-                  if (context.mounted) {
-                    DesignerModel designerModel =
-                        Provider.of<DesignerModel>(context, listen: false);
+                    if (context.mounted) {
+                      DesignerModel designerModel =
+                          Provider.of<DesignerModel>(context, listen: false);
 
-                    if (designerModel.isEditingFlashing) {
-                      designerModel.editFlashing(designerModel.saveFlashing(),
-                          designerModel.editFlashingID);
-                      designerModel
-                          .flashings[designerModel.editFlashingID].images
-                          .clear();
-                      designerModel
-                          .flashings[designerModel.editFlashingID].images
-                          .add(nearBytes);
-                      designerModel
-                          .flashings[designerModel.editFlashingID].images
-                          .add(farBytes);
-                      designerModel.isEditingFlashing = false;
-                    } else {
-                      designerModel.addFlashing(designerModel.saveFlashing());
-                      designerModel
-                          .flashings[designerModel.flashings.length - 1].images
-                          .add(nearBytes);
-                      designerModel
-                          .flashings[designerModel.flashings.length - 1].images
-                          .add(farBytes);
+                      if (designerModel.isEditingFlashing) {
+                        designerModel.editFlashing(designerModel.saveFlashing(),
+                            designerModel.editFlashingID);
+                        designerModel
+                            .flashings[designerModel.editFlashingID].images
+                            .clear();
+                        designerModel
+                            .flashings[designerModel.editFlashingID].images
+                            .add(nearBytes);
+                        designerModel
+                            .flashings[designerModel.editFlashingID].images
+                            .add(farBytes);
+                        designerModel.isEditingFlashing = false;
+                      } else {
+                        designerModel.addFlashing(designerModel.saveFlashing());
+                        designerModel
+                            .flashings[designerModel.flashings.length - 1]
+                            .images
+                            .add(nearBytes);
+                        designerModel
+                            .flashings[designerModel.flashings.length - 1]
+                            .images
+                            .add(farBytes);
+                      }
                     }
+                    nearBytes = null;
+                    farBytes = null;
+                    nearPainter = null;
+                    farPainter = null;
                   }
-                  nearBytes = null;
-                  farBytes = null;
-                  nearPainter = null;
-                  farPainter = null;
+                  if (!context.mounted) return;
+                  DesignerModel designerModel =
+                      Provider.of<DesignerModel>(context, listen: false);
+
+                  final orders = await OrderStorage.readOrders();
+                  final idx = designerModel.currentOrderIndex!;
+                  orders[idx].flashings
+                    ..clear()
+                    ..addAll(designerModel.flashings);
+
+                  await OrderStorage.writeOrders(orders);
+                  if (!context.mounted) return;
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const FlashingGridPage(),
+                      ));
+                } finally {
+                  _isRunning = false;
                 }
-                if (!context.mounted) return;
-                DesignerModel designerModel =
-                    Provider.of<DesignerModel>(context, listen: false);
-
-                final orders = await OrderStorage.readOrders();
-                final idx = designerModel.currentOrderIndex!;
-                orders[idx].flashings
-                  ..clear()
-                  ..addAll(designerModel.flashings);
-
-                await OrderStorage.writeOrders(orders);
-                if (!context.mounted) return;
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const FlashingGridPage(),
-                    ));
               },
               child: const Text(
                 "NEXT",
