@@ -52,7 +52,8 @@ class FlashingGridPage extends StatefulWidget {
 class FlashingGridPageState extends State<FlashingGridPage> {
   final _manager = PdfManager();
 
-  Future<AddFlashingParams?> showAddFlashingDialog(BuildContext context) {
+  Future<AddFlashingParams?> showAddFlashingDialog(
+      BuildContext context, bool isEditing) {
     const colorOptions = <String, Color>{
       'Dover White': Color(0xFFF9FBF1),
       'Surfmist': Color(0xFFE4E2D5),
@@ -124,10 +125,10 @@ class FlashingGridPageState extends State<FlashingGridPage> {
               ),
               insetPadding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              title: const Center(
+              title: Center(
                 child: Text(
-                  'NEW FLASHING',
-                  style: TextStyle(
+                  isEditing ? 'EDIT FLASHING' : 'NEW FLASHING',
+                  style: const TextStyle(
                     fontFamily: 'Kanit',
                     fontSize: 20,
                     color: Colors.deepPurple,
@@ -522,7 +523,8 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                         designerModel.clearAll();
                         designerModel.isEditingFlashing = false;
 
-                        final params = await showAddFlashingDialog(context);
+                        final params =
+                            await showAddFlashingDialog(context, false);
                         if (params == null) return;
                         final colourPart = params.colorName != null &&
                                 params.colorName!.isNotEmpty
@@ -814,7 +816,7 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                                     ?.tap(designerModel.bottomBarIndex);
 
                                 final params =
-                                    await showAddFlashingDialog(context);
+                                    await showAddFlashingDialog(context, true);
                                 if (params == null) return;
 
                                 // 1) set material
