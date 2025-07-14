@@ -2,9 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:web/web.dart' as web;
 
-import 'flashing_thumbnail_list.dart';
 import 'models/designer_model.dart';
 import 'package:flutter/material.dart';
+
+import 'order_page.dart';
 
 void main() {
   runApp(
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.compact,
         useMaterial3: true,
       ),
-      home: const FlashingGridPage(),
+      home: const OrdersPage(),
     );
 
     // Wrap with a deep purple background and add bottom inset container
