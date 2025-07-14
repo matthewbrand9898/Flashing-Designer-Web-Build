@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flashing_designer/models/designer_model.dart';
 import 'package:flashing_designer/order_page.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:provider/provider.dart';
@@ -650,7 +651,7 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                     orders[idx].flashings
                       ..clear()
                       ..addAll(designerModel.flashings);
-                    await OrderStorage.writeOrders(orders);
+                    await OrderStorage.saveOrder(orders[idx]);
                   }
 
                   return GestureDetector(
@@ -850,8 +851,8 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                                 }
                               },
                               icon: const Icon(
-                                Icons.edit,
-                                size: 25,
+                                FontAwesomeIcons.solidPenToSquare,
+                                size: 22,
                                 color: Colors.deepPurple,
                               ),
                             )),

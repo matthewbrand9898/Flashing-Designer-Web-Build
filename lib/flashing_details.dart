@@ -476,7 +476,7 @@ class _RenderFlashingState extends State<FlashingDetails> {
                     ..clear()
                     ..addAll(designerModel.flashings);
 
-                  await OrderStorage.writeOrders(orders);
+                  await OrderStorage.saveOrder(orders[idx]);
                   if (!context.mounted) return;
                   Navigator.pushReplacement(
                       context,
@@ -796,7 +796,7 @@ class FlashingDetailsCustomPainter extends CustomPainter {
       topRowParts.add(' ${taperedState == 0 ? 'Near' : 'Far'}');
     }
     topRowParts.add(
-        'Bends: ${(points.length - 2) + (cf1State.clamp(0, 1) + cf2State.clamp(0, 1))}');
+        'Bends: ${(points.length - 2) + ((cf1State.clamp(0, 1) * 2) + (cf2State.clamp(0, 1) * 2))}');
 
     if (job.isNotEmpty) topRowParts.add('Job: $job');
     if (flashingID.isNotEmpty) topRowParts.add('ID: $flashingID');

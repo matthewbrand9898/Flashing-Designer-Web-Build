@@ -62,6 +62,14 @@ extension type DrawTextOptions._(JSObject o) implements JSObject {
   });
 }
 
+String capitalizeWords(String input) {
+  if (input.isEmpty) return input;
+  return input.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1);
+  }).join(' ');
+}
+
 class PdfManager {
   PdfManager._();
   static final PdfManager _instance = PdfManager._();
@@ -129,33 +137,32 @@ class PdfManager {
       // Customer info
       if (customerName.isNotEmpty) {
         page.drawText(
-          'Customer: $customerName',
+          'Customer: ${capitalizeWords(customerName)}',
           DrawTextOptions(x: outerPad, y: y, size: 12),
         );
         y -= 15;
       }
       if (customerAddress.isNotEmpty) {
         page.drawText(
-          'Address:  $customerAddress',
+          'Address:   ${capitalizeWords(customerAddress)}',
           DrawTextOptions(x: outerPad, y: y, size: 12),
         );
         y -= 15;
       }
       if (customerPhone.isNotEmpty) {
         page.drawText(
-          'Phone:    $customerPhone',
+          'Phone:      ${customerPhone}',
           DrawTextOptions(x: outerPad, y: y, size: 12),
         );
         y -= 15;
       }
       if (customerEmail.isNotEmpty) {
         page.drawText(
-          'Email:    $customerEmail',
+          'Email:       ${capitalizeWords(customerEmail)}',
           DrawTextOptions(x: outerPad, y: y, size: 12),
         );
         y -= 15;
       }
-
       // c) compute how tall header+gap actually was
       headerHeight = (topY - y) + innerPad;
 

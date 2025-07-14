@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flashing_designer/models/order_model.dart';
 import 'package:flashing_designer/order_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flashing_designer/models/designer_model.dart';
 
 import 'flashing_thumbnail_list.dart';
+
+String capitalizeWords(String input) {
+  if (input.isEmpty) return input;
+  return input.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1);
+  }).join(' ');
+}
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -25,11 +34,30 @@ class OrdersPageState extends State<OrdersPage> {
   }
 
   Future<void> _loadOrders() async {
-    final loaded = await OrderStorage.readOrders();
-
+    final orders = await OrderStorage.readOrders();
     setState(() {
-      _orders = loaded;
+      _orders = orders;
       _loading = false;
+    });
+  }
+
+  Future<void> addOrder(Order newOrder) async {
+    // 1) Persist it
+    await OrderStorage.saveOrder(newOrder);
+
+    // 2) Update local list & UI
+    setState(() {
+      _orders.add(newOrder);
+    });
+  }
+
+  Future<void> deleteOrder(String id) async {
+    // 1) Remove from IndexedDB
+    await OrderStorage.deleteOrder(id);
+
+    // 2) Update local list & UI
+    setState(() {
+      _orders.removeWhere((o) => o.id == id);
     });
   }
 
@@ -114,8 +142,7 @@ class OrdersPageState extends State<OrdersPage> {
     );
 
     if (result != null) {
-      _orders.add(result);
-      await OrderStorage.writeOrders(_orders);
+      await addOrder(result);
       setState(() {});
     }
   }
@@ -203,7 +230,7 @@ class OrdersPageState extends State<OrdersPage> {
 
     if (result != null) {
       _orders[index] = result;
-      await OrderStorage.writeOrders(_orders);
+      await OrderStorage.syncOrders(_orders);
       setState(() {});
     }
   }
@@ -240,8 +267,8 @@ class OrdersPageState extends State<OrdersPage> {
     );
 
     if (ok == true) {
-      _orders.removeAt(index);
-      await OrderStorage.writeOrders(_orders);
+      await deleteOrder(_orders[index].id);
+
       setState(() {});
     }
   }
@@ -336,17 +363,20 @@ class OrdersPageState extends State<OrdersPage> {
                                       color: Colors.deepPurple)),
                               const SizedBox(height: 6),
                               if (o.customerName != null)
-                                Text('Customer:  ${o.customerName}',
+                                Text(
+                                    'Customer:  ${capitalizeWords(o.customerName ?? '')}',
                                     style: const TextStyle(
                                         fontFamily: 'Kanit',
                                         color: Colors.black54)),
                               if (o.address != null)
-                                Text('Address:     ${o.address}',
+                                Text(
+                                    'Address:     ${capitalizeWords(o.address ?? '')}',
                                     style: const TextStyle(
                                         fontFamily: 'Kanit',
                                         color: Colors.black54)),
                               if (o.email != null)
-                                Text('Email:          ${o.email}',
+                                Text(
+                                    'Email:          ${capitalizeWords(o.email ?? '')}',
                                     style: const TextStyle(
                                         fontFamily: 'Kanit',
                                         color: Colors.black54)),
@@ -375,8 +405,11 @@ class OrdersPageState extends State<OrdersPage> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.edit,
-                                        color: Colors.deepPurple),
+                                    icon: const Icon(
+                                      FontAwesomeIcons.solidPenToSquare,
+                                      color: Colors.deepPurple,
+                                      size: 22,
+                                    ),
                                     tooltip: 'EDIT ORDER',
                                     onPressed: () =>
                                         _showEditOrderDialog(realIndex),
