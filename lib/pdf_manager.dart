@@ -236,7 +236,7 @@ class PdfManager {
     return jsBuf.toDart;
   }
 
-  Future<void> saveAndOpenPdf(BuildContext context) async {
+  Future<void> saveAndOpenPdf(BuildContext context, String filename) async {
     // 1) Gather images exactly as before
     final designer = Provider.of<DesignerModel>(context, listen: false);
     final List<Uint8List> images = [];
@@ -275,7 +275,7 @@ class PdfManager {
     // 5) Trigger download
     final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
     anchor.href = url;
-    anchor.download = 'flashings.pdf';
+    anchor.download = filename;
     // Must add to DOM for click() to work in some browsers
     web.document.body!.append(anchor);
     anchor.click();

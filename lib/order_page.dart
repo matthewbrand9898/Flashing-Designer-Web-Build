@@ -26,6 +26,7 @@ class OrdersPageState extends State<OrdersPage> {
 
   Future<void> _loadOrders() async {
     final loaded = await OrderStorage.readOrders();
+
     setState(() {
       _orders = loaded;
       _loading = false;
@@ -286,7 +287,8 @@ class OrdersPageState extends State<OrdersPage> {
                   separatorBuilder: (_, __) => const SizedBox(height: 4),
                   itemCount: _orders.length,
                   itemBuilder: (_, i) {
-                    final o = _orders[i];
+                    final realIndex = _orders.length - 1 - i;
+                    final o = _orders[realIndex];
                     final created =
                         DateTime.fromMillisecondsSinceEpoch(int.parse(o.id))
                             .toLocal();
@@ -308,7 +310,7 @@ class OrdersPageState extends State<OrdersPage> {
                           final model = context.read<DesignerModel>();
                           model.setFlashings(
                             o.flashings,
-                            orderIndex: i,
+                            orderIndex: realIndex,
                             orderName: o.name,
                             orderDate: created,
                             customerName: o.customerName,
@@ -376,13 +378,14 @@ class OrdersPageState extends State<OrdersPage> {
                                     icon: const Icon(Icons.edit,
                                         color: Colors.deepPurple),
                                     tooltip: 'EDIT ORDER',
-                                    onPressed: () => _showEditOrderDialog(i),
+                                    onPressed: () =>
+                                        _showEditOrderDialog(realIndex),
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.delete,
                                         color: Colors.redAccent),
                                     tooltip: 'DELETE ORDER',
-                                    onPressed: () => _deleteOrder(i),
+                                    onPressed: () => _deleteOrder(realIndex),
                                   ),
                                 ],
                               ),

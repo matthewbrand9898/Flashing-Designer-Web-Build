@@ -927,7 +927,14 @@ class FlashingGridPageState extends State<FlashingGridPage> {
           await Future.delayed(Duration(milliseconds: 200));
           try {
             // 2️⃣ Generate, save and open the PDF (runs off the UI thread)
-            await _manager.saveAndOpenPdf(context);
+            await _manager.saveAndOpenPdf(
+                context,
+                Provider.of<DesignerModel>(context, listen: false)
+                        .currentOrderName
+                        .toString() +
+                    ' Flashings ' +
+                    DateTime.now().toLocal().toString() +
+                    '.pdf');
           } catch (e) {
             // optional: error feedback
             if (context.mounted) {

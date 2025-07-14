@@ -707,6 +707,42 @@ class FlashingDesigner extends StatelessWidget {
                                               context,
                                               listen: false)
                                           .tapered,
+                                      nearLengthWidgetText:
+                                          Provider.of<DesignerModel>(context,
+                                                  listen: false)
+                                              .nearLengthWidgetText,
+                                      nearLengthPositions:
+                                          Provider.of<DesignerModel>(context,
+                                                  listen: false)
+                                              .nearLengthPositions,
+                                      nearLengthPositionOffsets:
+                                          Provider.of<DesignerModel>(context,
+                                                  listen: false)
+                                              .nearLengthPositions_Offsets,
+                                      lengthPositions:
+                                          Provider.of<DesignerModel>(context,
+                                                  listen: false)
+                                              .lengthPositions,
+                                      lengthPositionOffsets:
+                                          Provider.of<DesignerModel>(context,
+                                                  listen: false)
+                                              .lengthPositions_Offsets,
+                                      lengthWidgetText:
+                                          Provider.of<DesignerModel>(context,
+                                                  listen: false)
+                                              .lengthWidgetText,
+                                      farLengthPositions:
+                                          Provider.of<DesignerModel>(context,
+                                                  listen: false)
+                                              .farLengthPositions,
+                                      farLengthPositionOffsets:
+                                          Provider.of<DesignerModel>(context,
+                                                  listen: false)
+                                              .farLengthPositions_Offsets,
+                                      farLengthWidgetText:
+                                          Provider.of<DesignerModel>(context,
+                                                  listen: false)
+                                              .farLengthWidgetText,
                                     ),
                                   ));
                             },

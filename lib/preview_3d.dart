@@ -10,11 +10,29 @@ class CubeOrbitPage extends StatefulWidget {
       {required this.points,
       required this.pointsFar,
       required this.pointsNear,
+      required this.nearLengthWidgetText,
+      required this.nearLengthPositions,
+      required this.nearLengthPositionOffsets,
+      required this.farLengthWidgetText,
+      required this.farLengthPositions,
+      required this.farLengthPositionOffsets,
+      required this.lengthWidgetText,
+      required this.lengthPositions,
+      required this.lengthPositionOffsets,
       required this.tapered,
       super.key});
   final List<Offset> points;
   final List<Offset> pointsFar;
   final List<Offset> pointsNear;
+  final List<int> lengthWidgetText;
+  final List<Offset> lengthPositions;
+  final List<Offset> lengthPositionOffsets;
+  final List<int> nearLengthWidgetText;
+  final List<Offset> nearLengthPositions;
+  final List<Offset> nearLengthPositionOffsets;
+  final List<int> farLengthWidgetText;
+  final List<Offset> farLengthPositions;
+  final List<Offset> farLengthPositionOffsets;
   final bool tapered;
   @override
   State<CubeOrbitPage> createState() => _CubeOrbitPageState();
@@ -25,6 +43,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
   late OrbitControls controls;
 
   List<Offset> normalizePoints(List<Offset> pts) {
+    if (pts.isEmpty) return [];
     // 1. Find raw bounds
     final xs = pts.map((o) => o.dx);
     final ys = pts.map((o) => o.dy);
@@ -127,41 +146,33 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
     }
 
     three.Mesh createLabelMesh({
-      required TYPRFont font,
+      required three.Font font,
       required String text,
       required double size,
       required double depth,
-      required three.Vector3 position,
     }) {
-      // Build text geometry
-      final textGeo = TextGeometry(
+      final geo = three.TextGeometry(
         text,
-        TextGeometryOptions(
+        three.TextGeometryOptions(
           font: font,
           size: size,
           depth: depth,
-          curveSegments: 1,
+          curveSegments: 3,
           bevelEnabled: false,
         ),
       );
 
-      textGeo.computeBoundingBox();
+      // center it: compute bounds, then translate so center is at (0,0,0)
+      geo.computeBoundingBox();
+      final b = geo.boundingBox!;
+      final xMid = -0.5 * (b.max.x + b.min.x);
+      final yMid = -0.5 * (b.max.y + b.min.y);
+      geo.translate(xMid, yMid, 0);
 
-      // Center horizontally
-      final bb = textGeo.boundingBox!;
-      final xOffset = -0.5 * (bb.max.x - bb.min.x);
-      textGeo.translate(xOffset, 0, 0);
-
-      // Build materials (white, flat shading)
-      final materials = three.MeshMatcapMaterial.fromMap({
-        "color": 0x1c1c1c,
-        "flatShading": false,
-      });
-
-      // Create mesh and position
-      final mesh = three.Mesh(textGeo, materials);
-      mesh.position = position;
-      return mesh;
+      return three.Mesh(
+        geo,
+        three.MeshBasicMaterial.fromMap({'color': 0x00000000}),
+      );
     }
 
     // 1) New scene + background
@@ -189,9 +200,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
       ..maxPolarAngle = math.pi;
     // allow full vertical orbit
     // Call controls.update() each frame
-    threeJs.addAnimationEvent((dt) {
-      controls.update();
-    });
+
     List<Offset> normalizedPoints = [];
     List<Offset> normalizedPointsFar = [];
     if (widget.tapered) {
@@ -227,7 +236,7 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
 // edges
     final edgesGeom = three.EdgesGeometry(merged, 10);
     final edgeMat = three.LineBasicMaterial.fromMap({
-      'color': 0x000000,
+      'color': 0xffffffff,
       'linewidth': 1,
     });
     threeJs.scene.add(three.LineSegments(edgesGeom, edgeMat));
@@ -243,18 +252,130 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
       text: "NEAR",
       size: labelSize,
       depth: labelDepth,
-      position: three.Vector3(0.5, -0.5, 4.1),
     );
     threeJs.scene.add(nearLabel);
-
+    nearLabel.position = three.Vector3(0.5, 0.1, 4.2);
     final farLabel = createLabelMesh(
       font: font,
       text: "FAR",
       size: labelSize,
       depth: labelDepth,
-      position: three.Vector3(0.5, -0.5, -0.1),
     );
     threeJs.scene.add(farLabel);
+    farLabel.position = three.Vector3(0.5, 0.1, -0.2);
+    const double factor = 10000;
+    const double zPlane = 4.01;
+
+// ——— 1) choose your “near” lists based on tapered or not ———
+    final List<int> nearTexts =
+        widget.tapered ? widget.nearLengthWidgetText : widget.lengthWidgetText;
+    final List<Offset> nearBases =
+        widget.tapered ? widget.nearLengthPositions : widget.lengthPositions;
+    final List<Offset> nearOffsets = widget.tapered
+        ? widget.nearLengthPositionOffsets
+        : widget.lengthPositionOffsets;
+    assert(nearTexts.length == nearBases.length &&
+        nearBases.length == nearOffsets.length);
+
+// ——— 2) create one mesh per near‐label (at origin) ———
+    final nearLengthLabels = <three.Mesh>[];
+    for (var i = 0; i < nearTexts.length; i++) {
+      final lbl = createLabelMesh(
+        font: font,
+        text: nearTexts[i].toString(),
+        size: 0.04,
+        depth: labelDepth,
+      );
+      threeJs.scene.add(lbl);
+      nearLengthLabels.add(lbl);
+    }
+
+// ——— 3) if tapered, also build far‐labels ———
+    final farLengthLabels = <three.Mesh>[];
+    if (widget.tapered) {
+      final farTexts = widget.farLengthWidgetText;
+      final farBases = widget.farLengthPositions;
+      final farOffsets = widget.farLengthPositionOffsets;
+      assert(farTexts.length == farBases.length &&
+          farBases.length == farOffsets.length);
+
+      for (var i = 0; i < farTexts.length; i++) {
+        final lbl = createLabelMesh(
+          font: font,
+          text: farTexts[i].toString(),
+          size: 0.04,
+          depth: labelDepth,
+        );
+        threeJs.scene.add(lbl);
+        farLengthLabels.add(lbl);
+      }
+    }
+
+// 2) Scale all of your tube points exactly as you do when building the mesh
+    final scaledNear = widget.tapered
+        ? _scale2D(widget.pointsNear, factor)
+        : _scale2D(widget.points, factor);
+
+    final scaledFar = _scale2D(widget.pointsFar, factor);
+
+    final allPts =
+        widget.tapered ? [...scaledNear, ...scaledFar] : [...scaledNear];
+
+    final xs = allPts.map((o) => o.dx);
+    final ys = allPts.map((o) => o.dy);
+    final minX = xs.reduce(math.min);
+    final maxX = xs.reduce(math.max);
+    final minY = ys.reduce(math.min);
+    final maxY = ys.reduce(math.max);
+    final spanX = maxX - minX;
+    final spanY = maxY - minY;
+
+    final maxSpan = math.max(spanX, spanY);
+    final padX = (1.0 - spanX / maxSpan) / 2.0;
+    final padY = (1.0 - spanY / maxSpan) / 2.0;
+
+// ——— 4) animate: project each UI‐point by the SAME normalize & billboard ———
+    threeJs.addAnimationEvent((_) {
+      controls.update();
+      nearLabel.lookAt(threeJs.camera.position);
+      farLabel.lookAt(threeJs.camera.position);
+
+      // — Position near‐labels —
+
+      for (var i = 0; i < nearLengthLabels.length; i++) {
+        final raw = nearBases[i] + nearOffsets[i];
+        final scaled = Offset(raw.dx / factor, raw.dy / factor);
+        final normX = padX + (scaled.dx - minX) / maxSpan;
+        final normY = padY + (scaled.dy - minY) / maxSpan;
+
+        final m = nearLengthLabels[i];
+        m.position.x = normX;
+        m.position.y = -normY;
+        m.position.z = zPlane;
+        m.lookAt(threeJs.camera.position);
+        m.position.z = 4.1;
+      }
+
+      // — Position far‐labels (only when tapered) —
+      if (widget.tapered) {
+        final farBases = widget.farLengthPositions;
+        final farOffsets = widget.farLengthPositionOffsets;
+
+        for (var i = 0; i < farLengthLabels.length; i++) {
+          final raw = farBases[i] + farOffsets[i];
+          final scaled = Offset(raw.dx / factor, raw.dy / factor);
+          final normX = padX + (scaled.dx - minX) / maxSpan;
+          final normY = padY + (scaled.dy - minY) / maxSpan;
+
+          final m = farLengthLabels[i];
+          m.position.x = normX;
+          m.position.y = -normY;
+          // far labels at –0.2 depth
+          m.position.z = -0.1;
+          m.lookAt(threeJs.camera.position);
+        }
+      }
+    });
   }
 
   @override
@@ -279,7 +400,10 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
           )),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          return threeJs.build();
+          return SizedBox(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+              child: threeJs.build());
         },
       ),
     );
@@ -287,12 +411,9 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
 
   @override
   void dispose() {
-    // Clean up both renderer and controls
+    controls.dispose();
+    threeJs.dispose();
 
-    try {
-      controls.dispose();
-      threeJs.dispose();
-    } catch (e) {}
     super.dispose();
   }
 }
