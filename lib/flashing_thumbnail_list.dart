@@ -891,17 +891,15 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                       TextStyle(fontFamily: 'Kanit', color: Colors.deepPurple),
                 ),
               ),
-              backgroundColor: Colors.white,
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(height: 16),
-                  CircularProgressIndicator(),
-                ],
+              content: Text(
+                'Please Wait',
+                style: TextStyle(fontFamily: 'Kanit', color: Colors.black26),
               ),
+              backgroundColor: Colors.white,
             ),
           );
-
+          // Give Flutter a moment to actually show that dialog:
+          await Future.delayed(Duration(milliseconds: 200));
           try {
             // 2️⃣ Generate, save and open the PDF (runs off the UI thread)
             await _manager.saveAndOpenPdf(context);
