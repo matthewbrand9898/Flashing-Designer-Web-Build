@@ -92,32 +92,31 @@ class FlashingGridPageState extends State<FlashingGridPage> {
     ];
 
     return showDialog<AddFlashingParams>(
+      useSafeArea: false,
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) {
-          bool canAdd() {
-            final thick = double.tryParse(thicknessCtrl.text);
-            if (thick == null || thick <= 0) return false;
-            if ((selectedMaterial == 'Aluminium' ||
-                    selectedMaterial == 'Colorbond') &&
-                selectedColorName == null) return false;
-            for (var r in rows) {
-              final len = int.tryParse(r['length']!.text);
-              final cnt = int.tryParse(r['count']!.text);
-              if (len == null || len <= 0) return false;
-              if (cnt == null || cnt <= 0) return false;
+      builder: (ctx) => Center(
+        child: StatefulBuilder(
+          builder: (ctx, setState) {
+            bool canAdd() {
+              final thick = double.tryParse(thicknessCtrl.text);
+              if (thick == null || thick <= 0) return false;
+              if ((selectedMaterial == 'Aluminium' ||
+                      selectedMaterial == 'Colorbond') &&
+                  selectedColorName == null) return false;
+              for (var r in rows) {
+                final len = int.tryParse(r['length']!.text);
+                final cnt = int.tryParse(r['count']!.text);
+                if (len == null || len <= 0) return false;
+                if (cnt == null || cnt <= 0) return false;
+              }
+              return true;
             }
-            return true;
-          }
 
-          const maxW = 500.0;
-          final chipW = (maxW - (5 - 1) * 8) / 5;
+            const maxW = 500.0;
+            final chipW = (maxW - (5 - 1) * 8) / 5;
 
-          return MediaQuery.removeViewInsets(
-            context: ctx,
-            removeBottom: true,
-            child: AlertDialog(
+            return AlertDialog(
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -141,6 +140,9 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      const SizedBox(
+                        height: 8,
+                      ),
                       // Optional ID
                       TextField(
                         controller: idCtrl,
@@ -436,9 +438,9 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                   ),
                 ),
               ],
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
