@@ -92,31 +92,32 @@ class FlashingGridPageState extends State<FlashingGridPage> {
     ];
 
     return showDialog<AddFlashingParams>(
-      useSafeArea: false,
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => Center(
-        child: StatefulBuilder(
-          builder: (ctx, setState) {
-            bool canAdd() {
-              final thick = double.tryParse(thicknessCtrl.text);
-              if (thick == null || thick <= 0) return false;
-              if ((selectedMaterial == 'Aluminium' ||
-                      selectedMaterial == 'Colorbond') &&
-                  selectedColorName == null) return false;
-              for (var r in rows) {
-                final len = int.tryParse(r['length']!.text);
-                final cnt = int.tryParse(r['count']!.text);
-                if (len == null || len <= 0) return false;
-                if (cnt == null || cnt <= 0) return false;
-              }
-              return true;
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) {
+          bool canAdd() {
+            final thick = double.tryParse(thicknessCtrl.text);
+            if (thick == null || thick <= 0) return false;
+            if ((selectedMaterial == 'Aluminium' ||
+                    selectedMaterial == 'Colorbond') &&
+                selectedColorName == null) return false;
+            for (var r in rows) {
+              final len = int.tryParse(r['length']!.text);
+              final cnt = int.tryParse(r['count']!.text);
+              if (len == null || len <= 0) return false;
+              if (cnt == null || cnt <= 0) return false;
             }
+            return true;
+          }
 
-            const maxW = 500.0;
-            final chipW = (maxW - (5 - 1) * 8) / 5;
+          const maxW = 500.0;
+          final chipW = (maxW - (5 - 1) * 8) / 5;
 
-            return AlertDialog(
+          return MediaQuery.removeViewInsets(
+            context: context,
+            removeBottom: true,
+            child: AlertDialog(
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -301,57 +302,66 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Row(children: [
                             Expanded(
-                              child: TextField(
-                                controller: ctrls['length'],
-                                keyboardType: TextInputType.numberWithOptions(
-                                    decimal: true),
-                                onChanged: (_) => setState(() {}),
-                                style: const TextStyle(
-                                    fontFamily: 'Kanit',
-                                    fontWeight: FontWeight.bold),
-                                decoration: InputDecoration(
-                                  labelText: 'Length (mm)',
-                                  labelStyle: const TextStyle(
-                                      fontFamily: 'Kanit', fontSize: 12),
-                                  errorText: (ctrls['length']!
-                                              .text
-                                              .isNotEmpty &&
-                                          (int.tryParse(
-                                                      ctrls['length']!.text) ==
-                                                  null ||
-                                              int.parse(
-                                                      ctrls['length']!.text) <=
-                                                  0))
-                                      ? 'Must be > 0'
-                                      : null,
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6)),
+                              child: MediaQuery.removeViewInsets(
+                                context: context,
+                                child: TextField(
+                                  controller: ctrls['length'],
+                                  keyboardType: TextInputType.numberWithOptions(
+                                      decimal: true),
+                                  onChanged: (_) => setState(() {}),
+                                  style: const TextStyle(
+                                      fontFamily: 'Kanit',
+                                      fontWeight: FontWeight.bold),
+                                  decoration: InputDecoration(
+                                    labelText: 'Length (mm)',
+                                    labelStyle: const TextStyle(
+                                        fontFamily: 'Kanit', fontSize: 12),
+                                    errorText:
+                                        (ctrls['length']!.text.isNotEmpty &&
+                                                (int.tryParse(ctrls['length']!
+                                                            .text) ==
+                                                        null ||
+                                                    int.parse(ctrls['length']!
+                                                            .text) <=
+                                                        0))
+                                            ? 'Must be > 0'
+                                            : null,
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(6)),
+                                  ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             SizedBox(
                               width: 80,
-                              child: TextField(
-                                controller: ctrls['count'],
-                                keyboardType: TextInputType.number,
-                                onChanged: (_) => setState(() {}),
-                                style: const TextStyle(
-                                    fontFamily: 'Kanit',
-                                    fontWeight: FontWeight.bold),
-                                decoration: InputDecoration(
-                                  labelText: 'Count',
-                                  labelStyle: const TextStyle(
-                                      fontFamily: 'Kanit', fontSize: 12),
-                                  errorText: (ctrls['count']!.text.isNotEmpty &&
-                                          (int.tryParse(ctrls['count']!.text) ==
-                                                  null ||
-                                              int.parse(ctrls['count']!.text) <=
-                                                  0))
-                                      ? 'Must be > 0'
-                                      : null,
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6)),
+                              child: MediaQuery.removeViewInsets(
+                                context: context,
+                                child: TextField(
+                                  controller: ctrls['count'],
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (_) => setState(() {}),
+                                  style: const TextStyle(
+                                      fontFamily: 'Kanit',
+                                      fontWeight: FontWeight.bold),
+                                  decoration: InputDecoration(
+                                    labelText: 'Count',
+                                    labelStyle: const TextStyle(
+                                        fontFamily: 'Kanit', fontSize: 12),
+                                    errorText: (ctrls['count']!
+                                                .text
+                                                .isNotEmpty &&
+                                            (int.tryParse(
+                                                        ctrls['count']!.text) ==
+                                                    null ||
+                                                int.parse(
+                                                        ctrls['count']!.text) <=
+                                                    0))
+                                        ? 'Must be > 0'
+                                        : null,
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(6)),
+                                  ),
                                 ),
                               ),
                             ),
@@ -438,9 +448,9 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                   ),
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

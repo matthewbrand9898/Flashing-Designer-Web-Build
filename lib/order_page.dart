@@ -41,60 +41,74 @@ class OrdersPageState extends State<OrdersPage> {
 
     final result = await showDialog<Order?>(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Center(
-          child: Text(
-            'NEW ORDER',
-            style: TextStyle(
-                fontFamily: 'Kanit', color: Colors.deepPurple, fontSize: 20),
+      builder: (_) => MediaQuery.removeViewInsets(
+        context: context,
+        removeBottom: true,
+        child: AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Center(
+            child: Text(
+              'NEW ORDER',
+              style: TextStyle(
+                  fontFamily: 'Kanit', color: Colors.deepPurple, fontSize: 20),
+            ),
           ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                _buildTextField(nameCtrl, 'Order Name *', autofocus: true),
+                const SizedBox(height: 12),
+                _buildTextField(customerCtrl, 'Customer Name'),
+                const SizedBox(height: 12),
+                _buildTextField(addressCtrl, 'Address'),
+                const SizedBox(height: 12),
+                MediaQuery.removeViewInsets(
+                  context: context,
+                  child: _buildTextField(phoneCtrl, 'Phone',
+                      keyboard: TextInputType.phone),
+                ),
+                const SizedBox(height: 12),
+                MediaQuery.removeViewInsets(
+                  context: context,
+                  child: _buildTextField(emailCtrl, 'Email',
+                      keyboard: TextInputType.emailAddress),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Cancel',
+                  style:
+                      TextStyle(fontFamily: 'Kanit', color: Colors.redAccent)),
+            ),
+            ElevatedButton(
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+              onPressed: () {
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) return;
+                Navigator.of(context).pop(Order(
+                  name: name,
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  flashings: [],
+                  customerName: _optional(customerCtrl.text),
+                  address: _optional(addressCtrl.text),
+                  phone: _optional(phoneCtrl.text),
+                  email: _optional(emailCtrl.text),
+                ));
+              },
+              child: const Text('Save',
+                  style: TextStyle(fontFamily: 'Kanit', color: Colors.white)),
+            ),
+          ],
         ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              _buildTextField(nameCtrl, 'Order Name *', autofocus: true),
-              const SizedBox(height: 12),
-              _buildTextField(customerCtrl, 'Customer Name'),
-              const SizedBox(height: 12),
-              _buildTextField(addressCtrl, 'Address'),
-              const SizedBox(height: 12),
-              _buildTextField(phoneCtrl, 'Phone',
-                  keyboard: TextInputType.phone),
-              const SizedBox(height: 12),
-              _buildTextField(emailCtrl, 'Email',
-                  keyboard: TextInputType.emailAddress),
-            ],
-          ),
-        ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: const Text('Cancel',
-                style: TextStyle(fontFamily: 'Kanit', color: Colors.redAccent)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
-            onPressed: () {
-              final name = nameCtrl.text.trim();
-              if (name.isEmpty) return;
-              Navigator.of(context).pop(Order(
-                name: name,
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                flashings: [],
-                customerName: _optional(customerCtrl.text),
-                address: _optional(addressCtrl.text),
-                phone: _optional(phoneCtrl.text),
-                email: _optional(emailCtrl.text),
-              ));
-            },
-            child: const Text('Save',
-                style: TextStyle(fontFamily: 'Kanit', color: Colors.white)),
-          ),
-        ],
       ),
     );
 
@@ -115,60 +129,74 @@ class OrdersPageState extends State<OrdersPage> {
 
     final result = await showDialog<Order?>(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Center(
-          child: Text(
-            'EDIT ORDER',
-            style: TextStyle(
-                fontFamily: 'Kanit', color: Colors.deepPurple, fontSize: 20),
+      builder: (_) => MediaQuery.removeViewInsets(
+        context: context,
+        removeBottom: true,
+        child: AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Center(
+            child: Text(
+              'EDIT ORDER',
+              style: TextStyle(
+                  fontFamily: 'Kanit', color: Colors.deepPurple, fontSize: 20),
+            ),
           ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                _buildTextField(nameCtrl, 'Order Name *', autofocus: true),
+                const SizedBox(height: 12),
+                _buildTextField(customerCtrl, 'Customer Name'),
+                const SizedBox(height: 12),
+                _buildTextField(addressCtrl, 'Address'),
+                const SizedBox(height: 12),
+                MediaQuery.removeViewInsets(
+                  context: context,
+                  child: _buildTextField(phoneCtrl, 'Phone',
+                      keyboard: TextInputType.phone),
+                ),
+                const SizedBox(height: 12),
+                MediaQuery.removeViewInsets(
+                  context: context,
+                  child: _buildTextField(emailCtrl, 'Email',
+                      keyboard: TextInputType.emailAddress),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Cancel',
+                  style:
+                      TextStyle(fontFamily: 'Kanit', color: Colors.redAccent)),
+            ),
+            ElevatedButton(
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+              onPressed: () {
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) return;
+                Navigator.of(context).pop(Order(
+                  name: name,
+                  id: existing.id,
+                  flashings: existing.flashings,
+                  customerName: _optional(customerCtrl.text),
+                  address: _optional(addressCtrl.text),
+                  phone: _optional(phoneCtrl.text),
+                  email: _optional(emailCtrl.text),
+                ));
+              },
+              child: const Text('Save',
+                  style: TextStyle(fontFamily: 'Kanit', color: Colors.white)),
+            ),
+          ],
         ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              _buildTextField(nameCtrl, 'Order Name *', autofocus: true),
-              const SizedBox(height: 12),
-              _buildTextField(customerCtrl, 'Customer Name'),
-              const SizedBox(height: 12),
-              _buildTextField(addressCtrl, 'Address'),
-              const SizedBox(height: 12),
-              _buildTextField(phoneCtrl, 'Phone',
-                  keyboard: TextInputType.phone),
-              const SizedBox(height: 12),
-              _buildTextField(emailCtrl, 'Email',
-                  keyboard: TextInputType.emailAddress),
-            ],
-          ),
-        ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: const Text('Cancel',
-                style: TextStyle(fontFamily: 'Kanit', color: Colors.redAccent)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
-            onPressed: () {
-              final name = nameCtrl.text.trim();
-              if (name.isEmpty) return;
-              Navigator.of(context).pop(Order(
-                name: name,
-                id: existing.id,
-                flashings: existing.flashings,
-                customerName: _optional(customerCtrl.text),
-                address: _optional(addressCtrl.text),
-                phone: _optional(phoneCtrl.text),
-                email: _optional(emailCtrl.text),
-              ));
-            },
-            child: const Text('Save',
-                style: TextStyle(fontFamily: 'Kanit', color: Colors.white)),
-          ),
-        ],
       ),
     );
 
