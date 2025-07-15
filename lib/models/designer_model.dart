@@ -1090,7 +1090,7 @@ class DesignerModel extends ChangeNotifier {
   }
 
   void RotateFlashing() {
-    double DeltaAngle = _flashingRotationAngle - _oldFlashingRotationAngle;
+    double DeltaAngle = (_flashingRotationAngle - _oldFlashingRotationAngle);
 
     for (int i = 0; i < _points.length; i++) {
       _points[i] =

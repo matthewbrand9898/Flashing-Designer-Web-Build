@@ -1,5 +1,6 @@
 import 'angle_widget.dart';
 import 'cf1_widget.dart';
+import 'circular_angle_widget.dart';
 import 'colour_direction_widget.dart';
 import 'edit_angle.dart';
 import 'edit_cf.dart';
@@ -14,13 +15,15 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:sleek_circular_slider/sleek_circular_slider.dart';
+
 import 'cf2_widget.dart';
 import 'flashing_details.dart';
 import 'draw.dart';
 import 'flashing_thumbnail_list.dart';
 import 'helper_functions.dart';
 import 'models/designer_model.dart';
+
+double rotation = 0;
 
 class FlashingDesigner extends StatelessWidget {
   const FlashingDesigner({super.key});
@@ -555,49 +558,23 @@ class FlashingDesigner extends StatelessWidget {
                           left: designerModel
                                   .points[designerModel.SelectedRotationPoint]
                                   .dx -
-                              75,
+                              100,
                           top: designerModel
                                   .points[designerModel.SelectedRotationPoint]
                                   .dy -
-                              75,
+                              100,
                           child: Transform.scale(
                             scale: 1 / designerModel.interactiveZoomFactor,
-                            child: SleekCircularSlider(
-                              appearance: CircularSliderAppearance(
-                                  customWidths: CustomSliderWidths(
-                                    trackWidth: 7,
-                                  ),
-                                  angleRange: 360,
-                                  startAngle: 0,
-                                  customColors: CustomSliderColors(
-                                      trackColor: Colors.deepPurple.shade500,
-                                      progressBarColor:
-                                          Colors.deepPurple.shade500,
-                                      hideShadow: true)),
-                              initialValue: 0,
-                              min: 0,
-                              max: 360,
-                              onChange: (double value) {
-                                designerModel.editFlashingRotationAngle(value);
-                                // callback providing a value while its being changed (with a pan gesture)
-                              },
-                              onChangeStart: (double startValue) {
-                                // callback providing a starting value (when a pan gesture starts)
-                              },
-                              onChangeEnd: (double endValue) {
-                                // ucallback providing an ending value (when a pan gesture ends)
-                              },
-                              innerWidget: (double value) {
-                                return Center(
-                                  child: Container(
-                                    width: 20,
-                                    height: 20,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.deepPurple.shade500,
-                                    ),
-                                  ),
-                                );
+                            child: InfiniteCircularAngleDrag(
+                              size: 200,
+                              strokeWidth: 25,
+                              handleRadius: 25,
+                              initialAngle: rotation,
+                              sensitivity: 3.0, // drag 3px = 1° turn
+                              onAngleChanged: (ang) {
+                                rotation = ang;
+                                designerModel.editFlashingRotationAngle(
+                                    ang.roundToDouble() * 1);
                               },
                             ),
                           ),
