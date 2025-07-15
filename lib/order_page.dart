@@ -230,7 +230,7 @@ class OrdersPageState extends State<OrdersPage> {
 
     if (result != null) {
       _orders[index] = result;
-      await OrderStorage.syncOrders(_orders);
+      await OrderStorage.saveOrder(result);
       setState(() {});
     }
   }

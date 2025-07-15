@@ -46,6 +46,8 @@ class DesignerModel extends ChangeNotifier {
   String? currentCustomerPhone;
   String? currentCustomerEmail;
 
+  Color _currentColour = Color(0xfffffff);
+
   int _editFlashingID = 0;
   int _cf_1State = 0;
   int _cf_2State = 0;
@@ -183,6 +185,12 @@ class DesignerModel extends ChangeNotifier {
       _material = v;
       notifyListeners();
     }
+  }
+
+  Color get currentColour => _currentColour;
+  set currentColour(Color c) {
+    _currentColour = c;
+    notifyListeners();
   }
 
   String get lengths => _Lengths;

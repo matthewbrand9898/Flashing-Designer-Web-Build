@@ -743,6 +743,13 @@ class FlashingDesigner extends StatelessWidget {
                                           Provider.of<DesignerModel>(context,
                                                   listen: false)
                                               .farLengthWidgetText,
+                                      colorSide: Provider.of<DesignerModel>(
+                                              context,
+                                              listen: false)
+                                          .colourSide,
+                                      color: Provider.of<DesignerModel>(context,
+                                              listen: false)
+                                          .currentColour,
                                     ),
                                   ));
                             },

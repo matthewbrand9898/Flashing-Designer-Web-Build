@@ -56,29 +56,29 @@ class FlashingGridPageState extends State<FlashingGridPage> {
   Future<AddFlashingParams?> showAddFlashingDialog(
       BuildContext context, bool isEditing) {
     const colorOptions = <String, Color>{
-      'Dover White': Color(0xFFF9FBF1),
-      'Surfmist': Color(0xFFE4E2D5),
-      'Evening Haze': Color(0xFFC5C2AA),
-      'Southerly': Color(0xFFD2D1CB),
-      'Dune': Color(0xFFB1ADA3),
-      'Paperbark': Color(0xFFCABFA4),
-      'Classic Cream': Color(0xFFE9DCB8),
-      'Shale Grey': Color(0xFFBDBFBA),
-      'Bluegum': Color(0xFF969799),
-      'Windspray': Color(0xFF888B8A),
-      'Gully': Color(0xFF857E73),
-      'Jasper': Color(0xFF6C6153),
-      'Wallaby': Color(0xFF7F7C78),
-      'Basalt': Color(0xFF6D6C6E),
-      'Monument': Color(0xFF323233),
-      'Night Sky': Color(0xFF000000),
-      'Ironstone': Color(0xFF3E434C),
-      'Deep Ocean': Color(0xFF364152),
-      'Pale Eucalypt': Color(0xFF7C846A),
-      'Cottage Green': Color(0xFF304C3C),
-      'Manor Red': Color(0xFF5E1D0E),
-      'Woodland Grey': Color(0xFF4B4C46),
-      'Zinc': Color(0xFFBAC4C8),
+      'Dover White': Color(0xF9FBF1),
+      'Surfmist': Color(0xE4E2D5),
+      'Evening Haze': Color(0xC5C2AA),
+      'Southerly': Color(0xD2D1CB),
+      'Dune': Color(0xB1ADA3),
+      'Paperbark': Color(0xCABFA4),
+      'Classic Cream': Color(0xE9DCB8),
+      'Shale Grey': Color(0xBDBFBA),
+      'Bluegum': Color(0x969799),
+      'Windspray': Color(0x888B8A),
+      'Gully': Color(0x857E73),
+      'Jasper': Color(0x6C6153),
+      'Wallaby': Color(0x7F7C78),
+      'Basalt': Color(0x6D6C6E),
+      'Monument': Color(0x323233),
+      'Night Sky': Color(0x141414),
+      'Ironstone': Color(0x3E434C),
+      'Deep Ocean': Color(0x364152),
+      'Pale Eucalypt': Color(0x7C846A),
+      'Cottage Green': Color(0x304C3C),
+      'Manor Red': Color(0x5E1D0E),
+      'Woodland Grey': Color(0x4B4C46),
+      'Zinc': Color(0xBAC4C8),
     };
 
     String? selectedColorName;
@@ -195,6 +195,21 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                           if (m != 'Aluminium' && m != 'Colorbond') {
                             selectedColorName = null;
                             isUltra = false;
+                          }
+                          switch (m) {
+                            case 'Aluminium':
+                              thicknessCtrl.text = '0.9';
+                              break;
+
+                            case 'Colorbond':
+                              thicknessCtrl.text = '0.55';
+                              break;
+                            case 'Galvanised':
+                              thicknessCtrl.text = '1.2';
+                              break;
+                            case 'Stainless Steel':
+                              thicknessCtrl.text = '0.55';
+                              break;
                           }
                         }),
                       ),
@@ -317,7 +332,7 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                                   decoration: InputDecoration(
                                     labelText: 'Length (mm)',
                                     labelStyle: const TextStyle(
-                                        fontFamily: 'Kanit', fontSize: 12),
+                                        fontFamily: 'Kanit', fontSize: 13),
                                     errorText:
                                         (ctrls['length']!.text.isNotEmpty &&
                                                 (int.tryParse(ctrls['length']!
@@ -347,9 +362,9 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                                       fontFamily: 'Kanit',
                                       fontWeight: FontWeight.bold),
                                   decoration: InputDecoration(
-                                    labelText: 'Count',
+                                    labelText: 'Qty',
                                     labelStyle: const TextStyle(
-                                        fontFamily: 'Kanit', fontSize: 12),
+                                        fontFamily: 'Kanit', fontSize: 13),
                                     errorText: (ctrls['count']!
                                                 .text
                                                 .isNotEmpty &&
@@ -534,7 +549,8 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                         final ultra = (params.isUltra ? 'Ultra ' : '');
                         designerModel.material =
                             '$colourPart$ultra${params.thickness.toString() + 'mm'} ${params.material} ';
-
+                        designerModel.currentColour =
+                            params.color ?? Color(0xBAC4C8);
                         //set id
                         if (params.id != null) {
                           designerModel.flashingID = params.id!;
@@ -838,6 +854,8 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                                     .map((it) => '${it.count}@${it.length}')
                                     .join(', ');
                                 designerModel.lengths = lengthsStr;
+                                designerModel.currentColour =
+                                    params.color ?? Color(0xBAC4C8);
 
                                 if (Navigator.canPop(context)) {
                                   Navigator.pop(context);

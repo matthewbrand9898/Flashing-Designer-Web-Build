@@ -20,6 +20,8 @@ class CubeOrbitPage extends StatefulWidget {
       required this.lengthPositions,
       required this.lengthPositionOffsets,
       required this.tapered,
+      required this.colorSide,
+      required this.color,
       super.key});
   final List<Offset> points;
   final List<Offset> pointsFar;
@@ -34,6 +36,8 @@ class CubeOrbitPage extends StatefulWidget {
   final List<Offset> farLengthPositions;
   final List<Offset> farLengthPositionOffsets;
   final bool tapered;
+  final int colorSide;
+  final Color color;
   @override
   State<CubeOrbitPage> createState() => _CubeOrbitPageState();
 }
@@ -223,15 +227,23 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
       normalizedPointsFar = normalizedAll;
     }
 
-    const baseHex = 0xFF673AB7;
+    const backColorHex = 0xcfcccc;
+    int frontColorHex = widget.color.toARGB32();
 // …then in your scene setup:
     final merged =
         createSegmentsGeometry(normalizedPointsFar, normalizedPoints, 4);
     final mat = three.MeshMatcapMaterial()
-      ..color = three.Color.fromHex32(baseHex)
-      ..side = three.DoubleSide
-      ..flatShading = true;
+      ..color = three.Color.fromHex32(frontColorHex)
+      ..flatShading = true
+      ..side = widget.colorSide == 1 ? three.FrontSide : three.BackSide;
+
+    final mat2 = three.MeshMatcapMaterial()
+      ..color = three.Color.fromHex32(backColorHex)
+      ..flatShading = true
+      ..side = widget.colorSide == 1 ? three.BackSide : three.FrontSide;
+
     threeJs.scene.add(three.Mesh(merged, mat));
+    threeJs.scene.add(three.Mesh(merged, mat2));
 
 // edges
     final edgesGeom = three.EdgesGeometry(merged, 10);
@@ -311,6 +323,44 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
       }
     }
 
+    final List<three.Mesh> angleLabels = [];
+
+    for (var i = 1; i < normalizedPoints.length - 1; i++) {
+      final p = normalizedPoints[i];
+      final prev = normalizedPoints[i - 1];
+      final next = normalizedPoints[i + 1];
+
+      // build 2D vectors from current point to prev and next
+      final v1 = three.Vector2(prev.dx - p.dx, prev.dy - p.dy);
+      final v2 = three.Vector2(next.dx - p.dx, next.dy - p.dy);
+
+      // compute angle via dot product formula
+      final dot = v1.dot(v2);
+      final mag1 = v1.length;
+      final mag2 = v2.length;
+      final cos = (dot / (mag1 * mag2)).clamp(-1.0, 1.0);
+      final rad = math.acos(cos);
+      final deg = rad * (180.0 / math.pi);
+      if (deg.round() == 135 || deg.round() == 90 || deg.round() == 45) {
+        continue;
+      }
+      // format label text (e.g. “37.5°”)
+      final angleText = '${deg.round().toString()}°';
+
+      // create & add the label
+      final angleLabel = createLabelMesh(
+        font: font,
+        text: angleText,
+        size: 0.025,
+        depth: 0.005,
+      );
+      threeJs.scene.add(angleLabel);
+
+      // position it at the point, with your desired z‑offset
+      angleLabel.position = three.Vector3(p.dx, -p.dy + 0.01, 4.03);
+      angleLabels.add(angleLabel);
+    }
+
 // 2) Scale all of your tube points exactly as you do when building the mesh
     final scaledNear = widget.tapered
         ? _scale2D(widget.pointsNear, factor)
@@ -340,10 +390,14 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
       nearLabel.lookAt(threeJs.camera.position);
       farLabel.lookAt(threeJs.camera.position);
 
+      for (int i = 0; i < angleLabels.length; i++) {
+        angleLabels[i].lookAt(threeJs.camera.position);
+      }
+
       // — Position near‐labels —
 
       for (var i = 0; i < nearLengthLabels.length; i++) {
-        final raw = nearBases[i] + nearOffsets[i];
+        final raw = nearBases[i];
         final scaled = Offset(raw.dx / factor, raw.dy / factor);
         final normX = padX + (scaled.dx - minX) / maxSpan;
         final normY = padY + (scaled.dy - minY) / maxSpan;
@@ -359,10 +413,10 @@ class _CubeOrbitPageState extends State<CubeOrbitPage> {
       // — Position far‐labels (only when tapered) —
       if (widget.tapered) {
         final farBases = widget.farLengthPositions;
-        final farOffsets = widget.farLengthPositionOffsets;
+        //final farOffsets = widget.farLengthPositionOffsets;
 
         for (var i = 0; i < farLengthLabels.length; i++) {
-          final raw = farBases[i] + farOffsets[i];
+          final raw = farBases[i];
           final scaled = Offset(raw.dx / factor, raw.dy / factor);
           final normX = padX + (scaled.dx - minX) / maxSpan;
           final normY = padY + (scaled.dy - minY) / maxSpan;
