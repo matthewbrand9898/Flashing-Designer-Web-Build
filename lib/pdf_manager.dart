@@ -4,12 +4,14 @@ library pdf_manager;
 
 import 'dart:js_interop';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:provider/provider.dart';
 import 'package:web/web.dart' as web;
 
+import 'flashing_viewer.dart';
 import 'models/designer_model.dart';
 
 // ─── bind the global PDFLib UMD object ────────────────────────────────────
@@ -243,6 +245,27 @@ class PdfManager {
     return jsBuf.toDart;
   }
 
+  Future<Uint8List> generateImageBytes(
+      CustomPainter? painter, Size size) async {
+    ui.PictureRecorder? recorder = ui.PictureRecorder();
+    Canvas? canvas = Canvas(recorder);
+    painter?.paint(canvas, size);
+    ui.Picture? picture = recorder.endRecording();
+    ui.Image? image =
+        (await picture.toImage(size.width.toInt(), size.height.toInt()));
+    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    Uint8List? pngBytes = byteData!.buffer.asUint8List();
+    image.dispose();
+    picture.dispose();
+    recorder = null;
+    canvas = null;
+    painter = null;
+    picture = null;
+    image = null;
+    byteData = null;
+    return pngBytes;
+  }
+
   Future<void> saveAndOpenPdf(BuildContext context, String filename) async {
     // 1) Gather images exactly as before
     final designer = Provider.of<DesignerModel>(context, listen: false);
@@ -250,10 +273,18 @@ class PdfManager {
     final List<Uint8List> tapered = [];
     for (final f in designer.flashings) {
       if (f.tapered) {
-        tapered.add(f.images[0]);
-        tapered.add(f.images[1]);
+        ;
+
+        tapered.add(await generateImageBytes(
+            FlashingCustomPainter(flashing: f, taperedState: 0),
+            Size(1024, 1024)));
+        tapered.add(await generateImageBytes(
+            FlashingCustomPainter(flashing: f, taperedState: 1),
+            Size(1024, 1024)));
       } else {
-        images.add(f.images[0]);
+        images.add(await generateImageBytes(
+            FlashingCustomPainter(flashing: f, taperedState: 0),
+            Size(1024, 1024)));
       }
     }
 

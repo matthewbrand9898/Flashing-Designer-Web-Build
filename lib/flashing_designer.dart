@@ -631,160 +631,175 @@ class FlashingDesigner extends StatelessWidget {
                       if (Provider.of<DesignerModel>(context, listen: true)
                               .bottomBarIndex ==
                           1)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(12.0, 0, 12.0, 0),
-                          child: Center(
-                            child: AutoSizeText(
-                              "GIRTH ${Provider.of<DesignerModel>(context, listen: true).girth}",
-                              style: TextStyle(
-                                  fontFamily: "Kanit",
-                                  color: Colors.deepPurple.shade500),
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+                            child: Center(
+                              child: AutoSizeText(
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                "GIRTH ${Provider.of<DesignerModel>(context, listen: true).girth}mm",
+                                style: TextStyle(
+                                    fontFamily: "Kanit",
+                                    color: Colors.deepPurple.shade500),
+                              ),
                             ),
                           ),
                         ),
                       if (Provider.of<DesignerModel>(context, listen: true)
                               .bottomBarIndex ==
                           1)
-                        TextButton(
+                        Flexible(
+                          child: TextButton(
+                              onPressed: () {
+                                if (Provider.of<DesignerModel>(context,
+                                        listen: false)
+                                    .tapered) {
+                                  if (Provider.of<DesignerModel>(context,
+                                              listen: false)
+                                          .taperedState ==
+                                      1) {
+                                    Provider.of<DesignerModel>(context,
+                                            listen: false)
+                                        .saveFarTaper();
+                                  } else {
+                                    Provider.of<DesignerModel>(context,
+                                            listen: false)
+                                        .saveNearTaper();
+                                  }
+                                }
+
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => CubeOrbitPage(
+                                        points: Provider.of<DesignerModel>(
+                                                context,
+                                                listen: false)
+                                            .points,
+                                        pointsFar: Provider.of<DesignerModel>(
+                                                context,
+                                                listen: false)
+                                            .farPoints,
+                                        pointsNear: Provider.of<DesignerModel>(
+                                                context,
+                                                listen: false)
+                                            .nearPoints,
+                                        tapered: Provider.of<DesignerModel>(
+                                                context,
+                                                listen: false)
+                                            .tapered,
+                                        nearLengthWidgetText:
+                                            Provider.of<DesignerModel>(context,
+                                                    listen: false)
+                                                .nearLengthWidgetText,
+                                        nearLengthPositions:
+                                            Provider.of<DesignerModel>(context,
+                                                    listen: false)
+                                                .nearLengthPositions,
+                                        nearLengthPositionOffsets:
+                                            Provider.of<DesignerModel>(context,
+                                                    listen: false)
+                                                .nearLengthPositions_Offsets,
+                                        lengthPositions:
+                                            Provider.of<DesignerModel>(context,
+                                                    listen: false)
+                                                .lengthPositions,
+                                        lengthPositionOffsets:
+                                            Provider.of<DesignerModel>(context,
+                                                    listen: false)
+                                                .lengthPositions_Offsets,
+                                        lengthWidgetText:
+                                            Provider.of<DesignerModel>(context,
+                                                    listen: false)
+                                                .lengthWidgetText,
+                                        farLengthPositions:
+                                            Provider.of<DesignerModel>(context,
+                                                    listen: false)
+                                                .farLengthPositions,
+                                        farLengthPositionOffsets:
+                                            Provider.of<DesignerModel>(context,
+                                                    listen: false)
+                                                .farLengthPositions_Offsets,
+                                        farLengthWidgetText:
+                                            Provider.of<DesignerModel>(context,
+                                                    listen: false)
+                                                .farLengthWidgetText,
+                                        colorSide: Provider.of<DesignerModel>(
+                                                context,
+                                                listen: false)
+                                            .colourSide,
+                                        color: Provider.of<DesignerModel>(
+                                                context,
+                                                listen: false)
+                                            .currentColour,
+                                      ),
+                                    ));
+                              },
+                              child: Text(
+                                '3D',
+                                style: TextStyle(
+                                    fontFamily: "Kanit",
+                                    color: Colors.deepPurple.shade500),
+                              )),
+                        ),
+                      if (Provider.of<DesignerModel>(context, listen: true)
+                              .bottomBarIndex ==
+                          1)
+                        Flexible(
+                          child: IconButton(
+                            color: Colors.deepPurple.shade500,
+                            icon: Icon(Provider.of<DesignerModel>(context,
+                                        listen: false)
+                                    .Hide90_45Angles
+                                ? Icons.visibility_off
+                                : Icons.visibility),
+                            onPressed: () {
+                              Provider.of<DesignerModel>(context, listen: false)
+                                  .editHide90_45Angles(
+                                      !Provider.of<DesignerModel>(context,
+                                              listen: false)
+                                          .Hide90_45Angles);
+                            },
+                          ),
+                        ),
+                      if (Provider.of<DesignerModel>(context, listen: true)
+                              .bottomBarIndex ==
+                          1)
+                        Flexible(
+                          child: IconButton(
+                            color: Colors.deepPurple.shade500,
+                            icon: const Icon(Icons.swap_horiz_rounded),
+                            onPressed: () {
+                              Provider.of<DesignerModel>(context, listen: false)
+                                  .swapColourSide();
+                            },
+                          ),
+                        ),
+                      if (Provider.of<DesignerModel>(context, listen: true)
+                              .bottomBarIndex ==
+                          1)
+                        Flexible(
+                          child: IconButton(
+                            icon: SvgPicture.asset('images/taperIcon.svg',
+                                width: 25,
+                                height: 25,
+                                semanticsLabel: 'Taper Icon'),
                             onPressed: () {
                               if (Provider.of<DesignerModel>(context,
-                                      listen: false)
-                                  .tapered) {
-                                if (Provider.of<DesignerModel>(context,
-                                            listen: false)
-                                        .taperedState ==
-                                    1) {
-                                  Provider.of<DesignerModel>(context,
                                           listen: false)
-                                      .saveFarTaper();
-                                } else {
-                                  Provider.of<DesignerModel>(context,
-                                          listen: false)
-                                      .saveNearTaper();
-                                }
-                              }
-
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => CubeOrbitPage(
-                                      points: Provider.of<DesignerModel>(
-                                              context,
-                                              listen: false)
-                                          .points,
-                                      pointsFar: Provider.of<DesignerModel>(
-                                              context,
-                                              listen: false)
-                                          .farPoints,
-                                      pointsNear: Provider.of<DesignerModel>(
-                                              context,
-                                              listen: false)
-                                          .nearPoints,
-                                      tapered: Provider.of<DesignerModel>(
-                                              context,
-                                              listen: false)
-                                          .tapered,
-                                      nearLengthWidgetText:
-                                          Provider.of<DesignerModel>(context,
-                                                  listen: false)
-                                              .nearLengthWidgetText,
-                                      nearLengthPositions:
-                                          Provider.of<DesignerModel>(context,
-                                                  listen: false)
-                                              .nearLengthPositions,
-                                      nearLengthPositionOffsets:
-                                          Provider.of<DesignerModel>(context,
-                                                  listen: false)
-                                              .nearLengthPositions_Offsets,
-                                      lengthPositions:
-                                          Provider.of<DesignerModel>(context,
-                                                  listen: false)
-                                              .lengthPositions,
-                                      lengthPositionOffsets:
-                                          Provider.of<DesignerModel>(context,
-                                                  listen: false)
-                                              .lengthPositions_Offsets,
-                                      lengthWidgetText:
-                                          Provider.of<DesignerModel>(context,
-                                                  listen: false)
-                                              .lengthWidgetText,
-                                      farLengthPositions:
-                                          Provider.of<DesignerModel>(context,
-                                                  listen: false)
-                                              .farLengthPositions,
-                                      farLengthPositionOffsets:
-                                          Provider.of<DesignerModel>(context,
-                                                  listen: false)
-                                              .farLengthPositions_Offsets,
-                                      farLengthWidgetText:
-                                          Provider.of<DesignerModel>(context,
-                                                  listen: false)
-                                              .farLengthWidgetText,
-                                      colorSide: Provider.of<DesignerModel>(
-                                              context,
-                                              listen: false)
-                                          .colourSide,
-                                      color: Provider.of<DesignerModel>(context,
-                                              listen: false)
-                                          .currentColour,
-                                    ),
-                                  ));
-                            },
-                            child: Text(
-                              '3D',
-                              style: TextStyle(
-                                  fontFamily: "Kanit",
-                                  color: Colors.deepPurple.shade500),
-                            )),
-                      if (Provider.of<DesignerModel>(context, listen: true)
-                              .bottomBarIndex ==
-                          1)
-                        IconButton(
-                          color: Colors.deepPurple.shade500,
-                          icon: Icon(
-                              Provider.of<DesignerModel>(context, listen: false)
-                                      .Hide90_45Angles
-                                  ? Icons.visibility_off
-                                  : Icons.visibility),
-                          onPressed: () {
-                            Provider.of<DesignerModel>(context, listen: false)
-                                .editHide90_45Angles(
-                                    !Provider.of<DesignerModel>(context,
-                                            listen: false)
-                                        .Hide90_45Angles);
-                          },
-                        ),
-                      if (Provider.of<DesignerModel>(context, listen: true)
-                              .bottomBarIndex ==
-                          1)
-                        IconButton(
-                          color: Colors.deepPurple.shade500,
-                          icon: const Icon(Icons.swap_horiz_rounded),
-                          onPressed: () {
-                            Provider.of<DesignerModel>(context, listen: false)
-                                .swapColourSide();
-                          },
-                        ),
-                      if (Provider.of<DesignerModel>(context, listen: true)
-                              .bottomBarIndex ==
-                          1)
-                        IconButton(
-                          icon: SvgPicture.asset('images/taperIcon.svg',
-                              width: 25,
-                              height: 25,
-                              semanticsLabel: 'Taper Icon'),
-                          onPressed: () {
-                            if (Provider.of<DesignerModel>(context,
+                                      .tapered ==
+                                  false) {
+                                Provider.of<DesignerModel>(context,
                                         listen: false)
-                                    .tapered ==
-                                false) {
-                              Provider.of<DesignerModel>(context, listen: false)
-                                  .enableTaper();
-                            } else {
-                              Provider.of<DesignerModel>(context, listen: false)
-                                  .disableTaper();
-                            }
-                          },
+                                    .enableTaper();
+                              } else {
+                                Provider.of<DesignerModel>(context,
+                                        listen: false)
+                                    .disableTaper();
+                              }
+                            },
+                          ),
                         ),
                       if (Provider.of<DesignerModel>(context, listen: true)
                                   .bottomBarIndex ==

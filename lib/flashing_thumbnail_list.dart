@@ -10,7 +10,10 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:provider/provider.dart';
 import 'flashing_designer.dart';
+import 'flashing_fullscreen_viewer.dart';
+import 'flashing_viewer.dart';
 import 'global_keys.dart';
+import 'helper_functions.dart';
 import 'models/flashing.dart';
 import 'order_storage.dart';
 import 'pdf_manager.dart'; // <-- now points at your native PdfManager
@@ -672,101 +675,10 @@ class FlashingGridPageState extends State<FlashingGridPage> {
 
                   return GestureDetector(
                     onTap: () {
-                      // local mutable state for this dialog
-                      var currentIndex = 0;
-                      final pageController = PageController(initialPage: 0);
-                      showDialog(
-                        context: ctx,
-                        barrierColor: Colors.black87,
-                        builder: (_) => StatefulBuilder(
-                          builder: (dialogCtx, setDialogState) {
-                            final images = flashings[flashingID].images;
-                            return Dialog(
-                              backgroundColor: Colors.black87,
-                              insetPadding: EdgeInsets.zero,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  PhotoViewGallery.builder(
-                                    pageController: pageController,
-                                    itemCount: images.length,
-                                    onPageChanged: (i) => setDialogState(() {
-                                      currentIndex = i;
-                                    }),
-                                    builder: (ctx, index) =>
-                                        PhotoViewGalleryPageOptions(
-                                      filterQuality: FilterQuality.high,
-                                      imageProvider: MemoryImage(images[index]),
-                                      minScale:
-                                          PhotoViewComputedScale.contained *
-                                              0.8,
-                                      maxScale:
-                                          PhotoViewComputedScale.covered * 5.0,
-                                      heroAttributes: PhotoViewHeroAttributes(
-                                          tag: 'img$index'),
-                                    ),
-                                    backgroundDecoration: const BoxDecoration(
-                                        color: Colors.black87),
-                                    scrollPhysics:
-                                        const BouncingScrollPhysics(),
-                                    loadingBuilder: (_, __) => const Center(
-                                        child: CircularProgressIndicator()),
-                                  ),
-
-                                  // ← left arrow
-                                  if (currentIndex > 0)
-                                    Positioned(
-                                      left: 8,
-                                      child: IconButton(
-                                        iconSize: 32,
-                                        color: Colors.white70,
-                                        icon: const Icon(Icons.chevron_left),
-                                        onPressed: () {
-                                          pageController.previousPage(
-                                            duration: const Duration(
-                                                milliseconds: 300),
-                                            curve: Curves.easeInOut,
-                                          );
-                                        },
-                                      ),
-                                    ),
-
-                                  // → right arrow
-                                  if (currentIndex < images.length - 1)
-                                    Positioned(
-                                      right: 8,
-                                      child: IconButton(
-                                        iconSize: 32,
-                                        color: Colors.white70,
-                                        icon: const Icon(Icons.chevron_right),
-                                        onPressed: () {
-                                          pageController.nextPage(
-                                            duration: const Duration(
-                                                milliseconds: 300),
-                                            curve: Curves.easeInOut,
-                                          );
-                                        },
-                                      ),
-                                    ),
-
-                                  // ✕ close
-                                  Positioned(
-                                    top: 16,
-                                    right: 16,
-                                    child: CircleAvatar(
-                                      backgroundColor: Colors.deepPurple,
-                                      child: IconButton(
-                                        icon: const Icon(Icons.close,
-                                            color: Colors.white),
-                                        onPressed: () =>
-                                            Navigator.of(dialogCtx).pop(),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => FlashingFullscreenViewer(
+                              flashing: flashings[flashingID]),
                         ),
                       );
                     },
@@ -789,13 +701,18 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.memory(
-                                    flashings[flashingID].images[0],
-                                    width: 600,
-                                    height: 600,
-                                    cacheWidth: 600,
-                                    cacheHeight: 600,
+                                  child: FittedBox(
                                     fit: BoxFit.contain,
+                                    child: SizedBox(
+                                      width: 1024,
+                                      height: 1024,
+                                      child: CustomPaint(
+                                        painter: FlashingCustomPainter(
+                                          taperedState: 0,
+                                          flashing: flashings[flashingID],
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -898,7 +815,7 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                 backgroundColor: Colors.white,
                 title: const Center(
                   child: Text(
-                    'No Flashings',
+                    'NO FLASHINGS',
                     style: TextStyle(
                         fontFamily: 'Kanit', color: Colors.deepPurple),
                   ),
@@ -936,6 +853,7 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                 ),
               ),
               content: Text(
+                textAlign: TextAlign.center,
                 'Please Wait',
                 style: TextStyle(fontFamily: 'Kanit', color: Colors.black26),
               ),
