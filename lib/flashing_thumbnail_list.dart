@@ -6,14 +6,13 @@ import 'package:flashing_designer/models/designer_model.dart';
 import 'package:flashing_designer/order_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:photo_view/photo_view_gallery.dart';
+
 import 'package:provider/provider.dart';
 import 'flashing_designer.dart';
 import 'flashing_fullscreen_viewer.dart';
 import 'flashing_viewer.dart';
 import 'global_keys.dart';
-import 'helper_functions.dart';
+
 import 'models/flashing.dart';
 import 'order_storage.dart';
 import 'pdf_manager.dart'; // <-- now points at your native PdfManager
