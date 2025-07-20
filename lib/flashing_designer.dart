@@ -32,8 +32,33 @@ class FlashingDesigner extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
+        floatingActionButton:
+            (Provider.of<DesignerModel>(context, listen: false)
+                        .bottomBarIndex ==
+                    1)
+                ? Padding(
+                    padding: EdgeInsets.only(
+                        top: Provider.of<DesignerModel>(context, listen: false)
+                                .tapered
+                            ? 250
+                            : 190,
+                        left: 16),
+                    child: FloatingActionButton(
+                        backgroundColor: Colors.deepPurple,
+                        tooltip: 'Reset view',
+                        child: Icon(
+                          Icons.filter_center_focus_rounded,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          Provider.of<DesignerModel>(context, listen: false)
+                              .resetTransformController(
+                                  MediaQuery.of(context).size);
+                        }),
+                  )
+                : null,
         backgroundColor: Colors.grey.shade50,
-        floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
+        floatingActionButtonLocation: FloatingActionButtonLocation.miniStartTop,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
