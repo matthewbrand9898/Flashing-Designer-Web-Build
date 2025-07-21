@@ -461,9 +461,10 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                           ));
                         }
                       : null,
-                  child: const Text(
-                    'Add',
-                    style: TextStyle(fontFamily: 'Kanit', color: Colors.white),
+                  child: Text(
+                    isEditing ? 'EDIT' : 'ADD',
+                    style: const TextStyle(
+                        fontFamily: 'Kanit', color: Colors.white),
                   ),
                 ),
               ],
@@ -745,8 +746,7 @@ class FlashingGridPageState extends State<FlashingGridPage> {
 
                                 designerModel.resetTransformController(
                                     MediaQuery.of(context).size);
-                                appBarKey.currentState
-                                    ?.tap(designerModel.bottomBarIndex);
+                                appBarKey.currentState?.tap(1);
 
                                 final params =
                                     await showAddFlashingDialog(context, true);

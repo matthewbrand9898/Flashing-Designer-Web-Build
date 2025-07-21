@@ -45,7 +45,6 @@ class FlashingDesigner extends StatelessWidget {
                         left: 16),
                     child: FloatingActionButton(
                         backgroundColor: Colors.deepPurple,
-                        tooltip: 'Reset view',
                         child: Icon(
                           Icons.filter_center_focus_rounded,
                           color: Colors.white,
@@ -127,6 +126,10 @@ class FlashingDesigner extends StatelessWidget {
           ],
         ),
         bottomNavigationBar: ConvexAppBar(
+          initialActiveIndex: Provider.of<DesignerModel>(context, listen: false)
+                  .isEditingFlashing
+              ? 1
+              : 0,
           key: appBarKey,
           backgroundColor: Colors.deepPurple.shade500,
           color: Colors.white,
@@ -912,6 +915,10 @@ class FlashingDesigner extends StatelessWidget {
                                   Provider.of<DesignerModel>(context,
                                           listen: false)
                                       .swapTaper(0);
+                                  Provider.of<DesignerModel>(context,
+                                          listen: false)
+                                      .resetTransformController(
+                                          MediaQuery.of(context).size);
                                 }
                               },
                             ),
@@ -943,6 +950,10 @@ class FlashingDesigner extends StatelessWidget {
                                   Provider.of<DesignerModel>(context,
                                           listen: false)
                                       .swapTaper(1);
+                                  Provider.of<DesignerModel>(context,
+                                          listen: false)
+                                      .resetTransformController(
+                                          MediaQuery.of(context).size);
                                 }
                               },
                             ),

@@ -307,100 +307,58 @@ class DesignerModel extends ChangeNotifier {
   }
 
   void _recalculateAllOffsets() {
-    // 1) update the model's zoom factor
-    final newScale = _transformationController.value.getMaxScaleOnAxis();
-    editInteractiveZoomFactor(newScale);
-    editOldInteractiveZoomFactor(newScale);
+    final double zoom = _transformationController.value.getMaxScaleOnAxis();
+    editInteractiveZoomFactor(zoom);
+    editOldInteractiveZoomFactor(zoom);
 
-    // 2) length offsets
-    for (var i = 0; i < _lengthPositions.length; i++) {
+    for (int i = 0; i < lengthPositions.length; i++) {
       editLengthPositionOffset(
-        i,
-        lengthOffset(
-          _points,
-          _lengthPositions,
-          _interactiveZoomFactor,
-          i + 1,
           i,
-          _lengthScales[i],
-        ),
-      );
+          lengthOffset(points, lengthPositions, interactiveZoomFactor, i + 1, i,
+              verticalScaler(points, lengthPositions, i + 1, i)));
     }
 
-    // 3) near‐length offsets
-    for (var i = 0; i < _nearLengthPositions.length; i++) {
+    for (int i = 0; i < nearLengthPositions.length; i++) {
       editNearLengthPositionOffset(
-        i,
-        lengthOffset(
-          _nearPoints,
-          _nearLengthPositions,
-          _interactiveZoomFactor,
-          i + 1,
           i,
-          _lengthScales[i],
-        ),
-      );
+          lengthOffset(
+              nearPoints,
+              nearLengthPositions,
+              interactiveZoomFactor,
+              i + 1,
+              i,
+              verticalScaler(nearPoints, nearLengthPositions, i + 1, i)));
     }
-
-    // 4) far‐length offsets
-    for (var i = 0; i < _farLengthPositions.length; i++) {
+    for (int i = 0; i < farLengthPositions.length; i++) {
       editFarLengthPositionOffset(
-        i,
-        lengthOffset(
-          _farPoints,
-          _farLengthPositions,
-          _interactiveZoomFactor,
-          i + 1,
           i,
-          _lengthScales[i],
-        ),
-      );
+          lengthOffset(
+              farPoints,
+              farLengthPositions,
+              interactiveZoomFactor,
+              i + 1,
+              i,
+              verticalScaler(farPoints, farLengthPositions, i + 1, i)));
     }
 
-    // 5) angle offsets
-    for (var i = 0; i < _anglePositions.length; i++) {
-      editAnglePositionOffset(
-        i,
-        angleOffset(
-          _points,
-          _anglePositions,
-          _interactiveZoomFactor,
-          i + 1,
-          i,
-        ),
-      );
+    for (int i = 0; i < anglePositions.length; i++) {
+      editAnglePositionOffset(i,
+          angleOffset(points, anglePositions, interactiveZoomFactor, i + 1, i));
     }
 
-    // 6) near‐angle offsets
-    for (var i = 0; i < _nearAnglePositions.length; i++) {
+    for (int i = 0; i < nearAnglePositions.length; i++) {
       editNearAnglePositionOffset(
-        i,
-        angleOffset(
-          _nearPoints,
-          _nearAnglePositions,
-          _interactiveZoomFactor,
-          i + 1,
           i,
-        ),
-      );
+          angleOffset(
+              nearPoints, nearAnglePositions, interactiveZoomFactor, i + 1, i));
     }
 
-    // 7) far‐angle offsets
-    for (var i = 0; i < _farAnglePositions.length; i++) {
+    for (int i = 0; i < farAnglePositions.length; i++) {
       editFarAnglePositionOffset(
-        i,
-        angleOffset(
-          _farPoints,
-          _farAnglePositions,
-          _interactiveZoomFactor,
-          i + 1,
           i,
-        ),
-      );
+          angleOffset(
+              farPoints, farAnglePositions, interactiveZoomFactor, i + 1, i));
     }
-
-    // 8) finally notify once so your UI rebuilds
-    notifyListeners();
   }
 
   void resetTransformController(Size viewSize) {
