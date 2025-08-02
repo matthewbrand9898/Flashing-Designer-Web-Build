@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:provider/provider.dart';
+import 'add_edit_flashing_page.dart';
 import 'flashing_designer.dart';
 import 'flashing_fullscreen_viewer.dart';
 import 'flashing_viewer.dart';
@@ -16,34 +17,6 @@ import 'global_keys.dart';
 import 'models/flashing.dart';
 import 'order_storage.dart';
 import 'pdf_manager.dart'; // <-- now points at your native PdfManager
-
-/// A single length/count entry
-class FlashingItem {
-  final int length;
-  final int count;
-  FlashingItem(this.length, this.count);
-}
-
-/// The dialog’s result, with material, thickness, optional colour, etc.
-class AddFlashingParams {
-  final String? id;
-  final String material;
-  final double thickness;
-  final bool isUltra; // ← new
-  final String? colorName;
-  final Color? color;
-  final List<FlashingItem> items;
-
-  AddFlashingParams({
-    this.id,
-    required this.material,
-    required this.thickness,
-    this.isUltra = false, // default
-    this.colorName,
-    this.color,
-    required this.items,
-  });
-}
 
 class FlashingGridPage extends StatefulWidget {
   const FlashingGridPage({super.key});
@@ -54,435 +27,6 @@ class FlashingGridPage extends StatefulWidget {
 
 class FlashingGridPageState extends State<FlashingGridPage> {
   final _manager = PdfManager();
-
-  Future<AddFlashingParams?> showAddFlashingDialog(
-      BuildContext context, bool isEditing) {
-    const colorOptions = <String, Color>{
-      'Dover White': Color(0xF9FBF1),
-      'Surfmist': Color(0xE4E2D5),
-      'Evening Haze': Color(0xC5C2AA),
-      'Southerly': Color(0xD2D1CB),
-      'Dune': Color(0xB1ADA3),
-      'Paperbark': Color(0xCABFA4),
-      'Classic Cream': Color(0xE9DCB8),
-      'Shale Grey': Color(0xBDBFBA),
-      'Bluegum': Color(0x969799),
-      'Windspray': Color(0x888B8A),
-      'Gully': Color(0x857E73),
-      'Jasper': Color(0x6C6153),
-      'Wallaby': Color(0x7F7C78),
-      'Basalt': Color(0x6D6C6E),
-      'Monument': Color(0x323233),
-      'Night Sky': Color(0x141414),
-      'Ironstone': Color(0x3E434C),
-      'Deep Ocean': Color(0x364152),
-      'Pale Eucalypt': Color(0x7C846A),
-      'Cottage Green': Color(0x304C3C),
-      'Manor Red': Color(0x5E1D0E),
-      'Woodland Grey': Color(0x4B4C46),
-      'Zinc': Color(0xBAC4C8),
-    };
-
-    String? selectedColorName;
-    String selectedMaterial = 'Colorbond';
-    bool isUltra = false; // ← new state
-    final idCtrl = TextEditingController();
-    final thicknessCtrl = TextEditingController(text: '0.55');
-    final rows = <Map<String, TextEditingController>>[
-      {
-        'length': TextEditingController(text: ''),
-        'count': TextEditingController(text: ''),
-      }
-    ];
-
-    return showDialog<AddFlashingParams>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) {
-          bool canAdd() {
-            final thick = double.tryParse(thicknessCtrl.text);
-            if (thick == null || thick <= 0) return false;
-            if ((selectedMaterial == 'Aluminium' ||
-                    selectedMaterial == 'Colorbond') &&
-                selectedColorName == null) return false;
-            for (var r in rows) {
-              final len = int.tryParse(r['length']!.text);
-              final cnt = int.tryParse(r['count']!.text);
-              if (len == null || len <= 0) return false;
-              if (cnt == null || cnt <= 0) return false;
-            }
-            return true;
-          }
-
-          const maxW = 500.0;
-          final chipW = (maxW - (5 - 1) * 8) / 5;
-
-          return MediaQuery.removeViewInsets(
-            context: context,
-            removeBottom: true,
-            child: AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              insetPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              title: Center(
-                child: Text(
-                  isEditing ? 'EDIT FLASHING' : 'NEW FLASHING',
-                  style: const TextStyle(
-                    fontFamily: 'Kanit',
-                    fontSize: 20,
-                    color: Colors.deepPurple,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              content: SizedBox(
-                width: maxW,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      // Optional ID
-                      TextField(
-                        controller: idCtrl,
-                        style: const TextStyle(
-                            fontFamily: 'Kanit', fontWeight: FontWeight.bold),
-                        decoration: InputDecoration(
-                          labelText: 'Flashing ID (optional)',
-                          labelStyle: const TextStyle(
-                              fontFamily: 'Kanit', fontSize: 12),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(6)),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Material dropdown
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'MATERIAL TYPE',
-                          style: TextStyle(
-                              fontFamily: 'Kanit', color: Colors.deepPurple),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        value: selectedMaterial,
-                        dropdownColor: Colors.white,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(6)),
-                        ),
-                        items: const [
-                          'Colorbond',
-                          'Aluminium',
-                          'Galvanised',
-                          'Stainless Steel',
-                        ]
-                            .map((m) => DropdownMenuItem(
-                                  value: m,
-                                  child: Text(m,
-                                      style: TextStyle(fontFamily: 'Kanit')),
-                                ))
-                            .toList(),
-                        onChanged: (m) => setState(() {
-                          selectedMaterial = m!;
-                          if (m != 'Aluminium' && m != 'Colorbond') {
-                            selectedColorName = null;
-                            isUltra = false;
-                          }
-                          switch (m) {
-                            case 'Aluminium':
-                              thicknessCtrl.text = '0.9';
-                              break;
-
-                            case 'Colorbond':
-                              thicknessCtrl.text = '0.55';
-                              break;
-                            case 'Galvanised':
-                              thicknessCtrl.text = '1.2';
-                              break;
-                            case 'Stainless Steel':
-                              thicknessCtrl.text = '0.55';
-                              break;
-                          }
-                        }),
-                      ),
-
-                      const SizedBox(height: 16),
-                      // Thickness
-                      TextField(
-                        controller: thicknessCtrl,
-                        style: const TextStyle(
-                            fontFamily: 'Kanit', fontWeight: FontWeight.bold),
-                        keyboardType:
-                            TextInputType.numberWithOptions(decimal: true),
-                        onChanged: (_) => setState(() {}),
-                        decoration: InputDecoration(
-                          labelText: 'Thickness (mm)',
-                          labelStyle: const TextStyle(
-                              fontFamily: 'Kanit', fontSize: 12),
-                          errorText: (thicknessCtrl.text.isNotEmpty &&
-                                  (double.tryParse(thicknessCtrl.text) ==
-                                          null ||
-                                      double.parse(thicknessCtrl.text) <= 0))
-                              ? 'Must be > 0'
-                              : null,
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(6)),
-                        ),
-                      ),
-
-                      // Colour selector—only for Aluminium or Colorbond
-                      if (selectedMaterial == 'Aluminium' ||
-                          selectedMaterial == 'Colorbond') ...[
-                        const SizedBox(height: 16),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'SELECT COLOUR',
-                            style: TextStyle(
-                                fontFamily: 'Kanit', color: Colors.deepPurple),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: colorOptions.entries.map((e) {
-                            final sel = e.key == selectedColorName;
-                            return GestureDetector(
-                              onTap: () =>
-                                  setState(() => selectedColorName = e.key),
-                              child: Container(
-                                width: chipW,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: e.value.withValues(alpha: 0.5),
-                                  border: Border.all(
-                                    color: sel
-                                        ? Colors.deepPurple
-                                        : Colors.transparent,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  e.key,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontFamily: 'Kanit',
-                                    color: Colors.black,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                      // Ultra checkbox—only for Colorbond
-                      if (selectedMaterial == 'Colorbond') ...[
-                        const SizedBox(height: 16),
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: const Text('ULTRA',
-                              style: TextStyle(
-                                  fontFamily: 'Kanit',
-                                  color: Colors.deepPurple)),
-                          value: isUltra,
-                          activeColor: Colors.deepPurple,
-                          onChanged: (v) => setState(() => isUltra = v!),
-                        ),
-                      ],
-                      const SizedBox(height: 16),
-                      // Lengths & counts
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'LENGTHS & AMOUNT',
-                          style: TextStyle(
-                              fontFamily: 'Kanit', color: Colors.deepPurple),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ...rows.asMap().entries.map((e) {
-                        final idx = e.key;
-                        final ctrls = e.value;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(children: [
-                            Expanded(
-                              child: MediaQuery.removeViewInsets(
-                                context: context,
-                                child: TextField(
-                                  controller: ctrls['length'],
-                                  keyboardType: TextInputType.numberWithOptions(
-                                      decimal: true),
-                                  onChanged: (_) => setState(() {}),
-                                  style: const TextStyle(
-                                      fontFamily: 'Kanit',
-                                      fontWeight: FontWeight.bold),
-                                  decoration: InputDecoration(
-                                    labelText: 'Length (mm)',
-                                    labelStyle: const TextStyle(
-                                        fontFamily: 'Kanit', fontSize: 13),
-                                    errorText:
-                                        (ctrls['length']!.text.isNotEmpty &&
-                                                (int.tryParse(ctrls['length']!
-                                                            .text) ==
-                                                        null ||
-                                                    int.parse(ctrls['length']!
-                                                            .text) <=
-                                                        0))
-                                            ? 'Must be > 0'
-                                            : null,
-                                    border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(6)),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 80,
-                              child: MediaQuery.removeViewInsets(
-                                context: context,
-                                child: TextField(
-                                  controller: ctrls['count'],
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (_) => setState(() {}),
-                                  style: const TextStyle(
-                                      fontFamily: 'Kanit',
-                                      fontWeight: FontWeight.bold),
-                                  decoration: InputDecoration(
-                                    labelText: 'Qty',
-                                    labelStyle: const TextStyle(
-                                        fontFamily: 'Kanit', fontSize: 13),
-                                    errorText: (ctrls['count']!
-                                                .text
-                                                .isNotEmpty &&
-                                            (int.tryParse(
-                                                        ctrls['count']!.text) ==
-                                                    null ||
-                                                int.parse(
-                                                        ctrls['count']!.text) <=
-                                                    0))
-                                        ? 'Must be > 0'
-                                        : null,
-                                    border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(6)),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            if (rows.length > 1)
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle,
-                                    color: Colors.redAccent),
-                                onPressed: () =>
-                                    setState(() => rows.removeAt(idx)),
-                              ),
-                          ]),
-                        );
-                      }),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton.icon(
-                          onPressed: () => setState(() {
-                            rows.add({
-                              'length': TextEditingController(text: ''),
-                              'count': TextEditingController(text: ''),
-                            });
-                          }),
-                          icon: const Icon(Icons.add, color: Colors.deepPurple),
-                          label: const Text(
-                            'Add Length',
-                            style: TextStyle(
-                                fontFamily: 'Kanit', color: Colors.deepPurple),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actionsPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text(
-                    'Cancel',
-                    style:
-                        TextStyle(fontFamily: 'Kanit', color: Colors.redAccent),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: canAdd()
-                      ? () {
-                          final items = rows.map((r) {
-                            final len = int.parse(r['length']!.text);
-                            final cnt = int.parse(r['count']!.text);
-                            return FlashingItem(len, cnt);
-                          }).toList();
-                          Navigator.of(ctx).pop(AddFlashingParams(
-                            id: idCtrl.text.trim().isEmpty
-                                ? null
-                                : idCtrl.text.trim(),
-                            material: selectedMaterial,
-                            thickness: double.parse(thicknessCtrl.text),
-                            isUltra: selectedMaterial == 'Colorbond'
-                                ? isUltra
-                                : false,
-                            colorName: (selectedMaterial == 'Aluminium' ||
-                                    selectedMaterial == 'Colorbond')
-                                ? selectedColorName
-                                : null,
-                            color: (selectedMaterial == 'Aluminium' ||
-                                    selectedMaterial == 'Colorbond')
-                                ? colorOptions[selectedColorName]!
-                                : null,
-                            items: items,
-                          ));
-                        }
-                      : null,
-                  child: Text(
-                    isEditing ? 'EDIT' : 'ADD',
-                    style: const TextStyle(
-                        fontFamily: 'Kanit', color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Utility from flutter_colorpicker to decide text color
-  bool useWhiteForeground(Color backgroundColor) =>
-      1.0 -
-          (0.299 * backgroundColor.r +
-                  0.587 * backgroundColor.g +
-                  0.114 * backgroundColor.b) /
-              255.0 >
-      0.5;
 
   @override
   Widget build(BuildContext context) {
@@ -542,8 +86,14 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                         designerModel.clearAll();
                         designerModel.isEditingFlashing = false;
 
-                        final params =
-                            await showAddFlashingDialog(context, false);
+                        final params = await Navigator.of(context)
+                            .push<AddFlashingParams?>(
+                          MaterialPageRoute(
+                            builder: (_) => AddFlashingPage(
+                              isEditing: designerModel.isEditingFlashing,
+                            ),
+                          ),
+                        );
                         if (params == null) return;
                         final colourPart = params.colorName != null &&
                                 params.colorName!.isNotEmpty
@@ -748,8 +298,16 @@ class FlashingGridPageState extends State<FlashingGridPage> {
                                     MediaQuery.of(context).size);
                                 appBarKey.currentState?.tap(1);
 
-                                final params =
-                                    await showAddFlashingDialog(context, true);
+                                final params = await Navigator.of(context)
+                                    .push<AddFlashingParams?>(
+                                  MaterialPageRoute(
+                                    builder: (_) => AddFlashingPage(
+                                      isEditing:
+                                          designerModel.isEditingFlashing,
+                                      // pass if editing
+                                    ),
+                                  ),
+                                );
                                 if (params == null) return;
 
                                 // 1) set material

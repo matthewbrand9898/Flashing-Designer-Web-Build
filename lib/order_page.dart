@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flashing_designer/models/designer_model.dart';
 
+import 'add_order_page.dart';
+import 'edit_order_page.dart';
 import 'flashing_thumbnail_list.dart';
 
 String capitalizeWords(String input) {
@@ -62,181 +64,33 @@ class OrdersPageState extends State<OrdersPage> {
   }
 
   Future<void> _showAddOrderDialog() async {
-    final nameCtrl = TextEditingController();
-    final customerCtrl = TextEditingController();
-    final addressCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
-    final emailCtrl = TextEditingController();
-
-    final result = await showDialog<Order?>(
-      context: context,
-      builder: (_) => MediaQuery.removeViewInsets(
-        context: context,
-        removeBottom: true,
-        child: AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Center(
-            child: Text(
-              'NEW ORDER',
-              style: TextStyle(
-                  fontFamily: 'Kanit', color: Colors.deepPurple, fontSize: 20),
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                _buildTextField(nameCtrl, 'Order Name *', autofocus: true),
-                const SizedBox(height: 12),
-                _buildTextField(customerCtrl, 'Customer Name'),
-                const SizedBox(height: 12),
-                _buildTextField(addressCtrl, 'Address'),
-                const SizedBox(height: 12),
-                MediaQuery.removeViewInsets(
-                  context: context,
-                  child: _buildTextField(phoneCtrl, 'Phone',
-                      keyboard: TextInputType.phone),
-                ),
-                const SizedBox(height: 12),
-                MediaQuery.removeViewInsets(
-                  context: context,
-                  child: _buildTextField(emailCtrl, 'Email',
-                      keyboard: TextInputType.emailAddress),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-          actionsPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(null),
-              child: const Text('Cancel',
-                  style:
-                      TextStyle(fontFamily: 'Kanit', color: Colors.redAccent)),
-            ),
-            ElevatedButton(
-              style:
-                  ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
-              onPressed: () {
-                final name = nameCtrl.text.trim();
-                if (name.isEmpty) return;
-                Navigator.of(context).pop(Order(
-                  name: name,
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  flashings: [],
-                  customerName: _optional(customerCtrl.text),
-                  address: _optional(addressCtrl.text),
-                  phone: _optional(phoneCtrl.text),
-                  email: _optional(emailCtrl.text),
-                ));
-              },
-              child: const Text('Save',
-                  style: TextStyle(fontFamily: 'Kanit', color: Colors.white)),
-            ),
-          ],
-        ),
-      ),
+    final newOrder = await Navigator.of(context).push<Order>(
+      MaterialPageRoute(builder: (_) => const AddOrderPage()),
     );
-
-    if (result != null) {
-      await addOrder(result);
+    if (newOrder != null) {
+      await addOrder(newOrder);
       setState(() {});
     }
   }
 
   Future<void> _showEditOrderDialog(int index) async {
     final existing = _orders[index];
-    final nameCtrl = TextEditingController(text: existing.name);
-    final customerCtrl = TextEditingController(text: existing.customerName);
-    final addressCtrl = TextEditingController(text: existing.address);
-    final phoneCtrl = TextEditingController(text: existing.phone);
-    final emailCtrl = TextEditingController(text: existing.email);
 
-    final result = await showDialog<Order?>(
-      context: context,
-      builder: (_) => MediaQuery.removeViewInsets(
-        context: context,
-        removeBottom: true,
-        child: AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Center(
-            child: Text(
-              'EDIT ORDER',
-              style: TextStyle(
-                  fontFamily: 'Kanit', color: Colors.deepPurple, fontSize: 20),
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                _buildTextField(nameCtrl, 'Order Name *', autofocus: true),
-                const SizedBox(height: 12),
-                _buildTextField(customerCtrl, 'Customer Name'),
-                const SizedBox(height: 12),
-                _buildTextField(addressCtrl, 'Address'),
-                const SizedBox(height: 12),
-                MediaQuery.removeViewInsets(
-                  context: context,
-                  child: _buildTextField(phoneCtrl, 'Phone',
-                      keyboard: TextInputType.phone),
-                ),
-                const SizedBox(height: 12),
-                MediaQuery.removeViewInsets(
-                  context: context,
-                  child: _buildTextField(emailCtrl, 'Email',
-                      keyboard: TextInputType.emailAddress),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-          actionsPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(null),
-              child: const Text('Cancel',
-                  style:
-                      TextStyle(fontFamily: 'Kanit', color: Colors.redAccent)),
-            ),
-            ElevatedButton(
-              style:
-                  ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
-              onPressed: () {
-                final name = nameCtrl.text.trim();
-                if (name.isEmpty) return;
-                Navigator.of(context).pop(Order(
-                  name: name,
-                  id: existing.id,
-                  flashings: existing.flashings,
-                  customerName: _optional(customerCtrl.text),
-                  address: _optional(addressCtrl.text),
-                  phone: _optional(phoneCtrl.text),
-                  email: _optional(emailCtrl.text),
-                ));
-              },
-              child: const Text('Save',
-                  style: TextStyle(fontFamily: 'Kanit', color: Colors.white)),
-            ),
-          ],
-        ),
+    // 1️⃣ Push the full-screen EditOrderPage, passing in the existing order
+    final updated = await Navigator.of(context).push<Order?>(
+      MaterialPageRoute(
+        builder: (_) => EditOrderPage(order: existing),
       ),
     );
 
-    if (result != null) {
-      _orders[index] = result;
-      await OrderStorage.saveOrder(result);
-      setState(() {});
+    // 2️⃣ If the user tapped “Save”, updated != null.  Update list + storage + UI
+    if (updated != null) {
+      setState(() {
+        _orders[index] = updated;
+      });
+      await OrderStorage.saveOrder(updated);
     }
   }
-
-  static String? _optional(String? text) =>
-      text == null || text.trim().isEmpty ? null : text.trim();
 
   Future<void> _deleteOrder(int index) async {
     final ok = await showDialog<bool>(
@@ -271,21 +125,6 @@ class OrdersPageState extends State<OrdersPage> {
 
       setState(() {});
     }
-  }
-
-  Widget _buildTextField(TextEditingController ctrl, String label,
-      {bool autofocus = false, TextInputType keyboard = TextInputType.text}) {
-    return TextField(
-      controller: ctrl,
-      autofocus: autofocus,
-      keyboardType: keyboard,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(fontFamily: 'Kanit'),
-        border: const OutlineInputBorder(),
-      ),
-      style: const TextStyle(fontFamily: 'Kanit'),
-    );
   }
 
   @override

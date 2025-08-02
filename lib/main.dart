@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'FLASHING DESIGNER',
       theme: ThemeData(
-        cardTheme: const CardTheme(
+        cardTheme: const CardThemeData(
           margin: EdgeInsets.zero,
           color: Colors.white,
         ),
